@@ -1,0 +1,35 @@
+extends CanvasLayer
+
+@export var grabber: PhysicsGrabber
+@export var debug_visible: bool = true
+@onready var _stats: Label = %Stats
+var _elapsed: float = 0.0
+
+
+func _ready() -> void:
+	_stats.visible = debug_visible
+	_update_stats()
+
+
+func _unhandled_input(event: InputEvent) -> void:
+	if event.is_action_pressed("toggle_debug"):
+		debug_visible = not debug_visible
+		_stats.visible = debug_visible
+		_update_stats()
+
+
+func _process(delta: float) -> void:
+	if not debug_visible:
+		return
+	_elapsed += delta
+	if _elapsed >= 0.2:
+		_elapsed = 0.0
+		_update_stats()
+
+
+func _update_stats() -> void:
+	var body := grabber.held_body
+	var detail := "Held: no"
+	if is_instance_valid(body):
+		detail = "Held: yes\n%s | %.2f kg" % [body.name, body.mass]
+	_stats.text = "FPS: %d\n%s" % [Engine.get_frames_per_second(), detail]

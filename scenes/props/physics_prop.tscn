@@ -1,0 +1,27 @@
+[gd_scene load_steps=4 format=3]
+
+[sub_resource type="BoxMesh" id="Mesh"]
+size = Vector3(0.6, 0.6, 0.6)
+
+[sub_resource type="BoxShape3D" id="Shape"]
+size = Vector3(0.6, 0.6, 0.6)
+
+[sub_resource type="PhysicsMaterial" id="Material"]
+friction = 0.65
+bounce = 0.08
+
+[node name="PhysicsProp" type="RigidBody3D" groups=["grabbable"]]
+collision_layer = 4
+collision_mask = 7
+mass = 2.0
+physics_material_override = SubResource("Material")
+continuous_cd = true
+linear_damp = 0.15
+angular_damp = 0.4
+can_sleep = true
+
+[node name="Mesh" type="MeshInstance3D" parent="."]
+mesh = SubResource("Mesh")
+
+[node name="Collision" type="CollisionShape3D" parent="."]
+shape = SubResource("Shape")

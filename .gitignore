@@ -1,0 +1,13 @@
+# Godot-generated caches and local editor state. Keep .gd.uid files tracked.
+.godot/
+.import/
+export.cfg
+export_credentials.cfg
+*.translation
+
+# Local exports / validation output.
+builds/
+.validation/
+*.log
+Thumbs.db
+.DS_Store
