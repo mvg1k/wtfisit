@@ -1,0 +1,87 @@
+[gd_scene load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://scripts/search_run.gd" id="1"]
+[ext_resource type="PackedScene" path="res://scenes/search_room.tscn" id="2"]
+[ext_resource type="PackedScene" path="res://scenes/props/keys.tscn" id="3"]
+[ext_resource type="Script" path="res://scripts/search_hud.gd" id="4"]
+
+[node name="SearchGame" type="Node3D"]
+script = ExtResource("1")
+room_scene = ExtResource("2")
+target_scene = ExtResource("3")
+
+[node name="SearchHUD" type="CanvasLayer" parent="." node_paths=PackedStringArray("run")]
+layer = 2
+script = ExtResource("4")
+run = NodePath("..")
+
+[node name="Objective" type="Label" parent="SearchHUD"]
+unique_name_in_owner = true
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -230.0
+offset_top = 20.0
+offset_right = 230.0
+offset_bottom = 100.0
+grow_horizontal = 2
+mouse_filter = 2
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
+theme_override_constants/shadow_offset_x = 2
+theme_override_constants/shadow_offset_y = 2
+theme_override_font_sizes/font_size = 24
+text = "FIND YOUR KEYS\n00:00.00"
+horizontal_alignment = 1
+
+[node name="ResultBackground" type="ColorRect" parent="SearchHUD"]
+unique_name_in_owner = true
+visible = false
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -400.0
+offset_top = -150.0
+offset_right = 400.0
+offset_bottom = 150.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0.09, 0.10, 0.12, 1)
+
+[node name="Result" type="Label" parent="SearchHUD"]
+unique_name_in_owner = true
+visible = false
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -380.0
+offset_top = -130.0
+offset_right = 380.0
+offset_bottom = 130.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
+theme_override_constants/shadow_offset_x = 3
+theme_override_constants/shadow_offset_y = 3
+theme_override_font_sizes/font_size = 28
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="SearchDebug" type="Label" parent="SearchHUD"]
+unique_name_in_owner = true
+visible = false
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -340.0
+offset_top = 20.0
+offset_right = -20.0
+offset_bottom = 175.0
+grow_horizontal = 0
+mouse_filter = 2
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
+theme_override_constants/shadow_offset_x = 2
+theme_override_constants/shadow_offset_y = 2
+theme_override_font_sizes/font_size = 17
+horizontal_alignment = 2

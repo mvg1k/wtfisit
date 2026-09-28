@@ -33,4 +33,7 @@ func _update_stats() -> void:
 	if is_instance_valid(body):
 		detail = "Held: yes\n%s | %.2f kg" % [body.name, body.mass]
 		detail += "\nHold distance: %.2f m" % grabber.current_hold_distance
-	_stats.text = "FPS: %d\n%s" % [Engine.get_frames_per_second(), detail]
+		if OS.is_debug_build() and grabber.is_charging_throw:
+			detail += "\nThrow: %d%%" % roundi(grabber.throw_charge * 100.0)
+	_stats.text = "FPS: %d\n%s\nStance: %s" % [
+		Engine.get_frames_per_second(), detail, SandboxPlayer.Stance.keys()[grabber.player.stance]]

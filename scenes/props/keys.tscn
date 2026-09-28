@@ -1,0 +1,73 @@
+[gd_scene load_steps=7 format=3]
+
+[ext_resource type="Script" path="res://scripts/target_item.gd" id="1"]
+
+[sub_resource type="StandardMaterial3D" id="Metal"]
+albedo_color = Color(0.85, 0.68, 0.25, 1)
+metallic = 0.6
+roughness = 0.4
+
+[sub_resource type="TorusMesh" id="Ring"]
+inner_radius = 0.032
+outer_radius = 0.065
+rings = 16
+ring_segments = 8
+material = SubResource("Metal")
+
+[sub_resource type="BoxMesh" id="Shaft"]
+size = Vector3(0.032, 0.04, 0.2)
+material = SubResource("Metal")
+
+[sub_resource type="BoxMesh" id="Tooth"]
+size = Vector3(0.065, 0.04, 0.03)
+material = SubResource("Metal")
+
+[sub_resource type="BoxShape3D" id="KeysShape"]
+size = Vector3(0.25, 0.06, 0.38)
+margin = 0.003
+
+[node name="Keys" type="RigidBody3D" groups=["grabbable"]]
+script = ExtResource("1")
+collision_layer = 4
+collision_mask = 7
+mass = 0.18
+continuous_cd = true
+linear_damp = 0.15
+angular_damp = 0.4
+can_sleep = true
+
+[node name="Collision" type="CollisionShape3D" parent="."]
+shape = SubResource("KeysShape")
+
+[node name="Head0" type="MeshInstance3D" parent="."]
+position = Vector3(-0.055, 0, -0.1)
+mesh = SubResource("Ring")
+
+[node name="Shaft0" type="MeshInstance3D" parent="."]
+position = Vector3(-0.055, 0, 0.045)
+mesh = SubResource("Shaft")
+
+[node name="ToothA0" type="MeshInstance3D" parent="."]
+position = Vector3(-0.055, 0, 0.085)
+mesh = SubResource("Tooth")
+
+[node name="ToothB0" type="MeshInstance3D" parent="."]
+position = Vector3(-0.055, 0, 0.14)
+mesh = SubResource("Tooth")
+
+[node name="Head1" type="MeshInstance3D" parent="."]
+position = Vector3(0.055, 0, -0.1)
+mesh = SubResource("Ring")
+
+[node name="Shaft1" type="MeshInstance3D" parent="."]
+position = Vector3(0.055, 0, 0.045)
+mesh = SubResource("Shaft")
+
+[node name="ToothA1" type="MeshInstance3D" parent="."]
+position = Vector3(0.055, 0, 0.085)
+mesh = SubResource("Tooth")
+
+[node name="ToothB1" type="MeshInstance3D" parent="."]
+position = Vector3(0.055, 0, 0.14)
+mesh = SubResource("Tooth")
+

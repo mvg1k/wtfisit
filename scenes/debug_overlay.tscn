@@ -55,4 +55,4 @@ theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
 theme_override_constants/shadow_offset_x = 2
 theme_override_constants/shadow_offset_y = 2
 theme_override_font_sizes/font_size = 17
-text = "WASD move  |  Mouse look  |  Space jump  |  E grab / drop  |  Left click throw\nHold R + mouse rotate  |  Wheel up / down farther / closer  |  Esc free cursor  |  Click capture  |  F3 stats"
+text = "WASD move  |  Mouse look  |  Space jump  |  Ctrl crouch  |  Z prone  |  E grab / drop\nLMB hold / release throw  |  R + mouse rotate  |  Wheel distance  |  Esc free cursor  |  Click capture  |  F3 stats"

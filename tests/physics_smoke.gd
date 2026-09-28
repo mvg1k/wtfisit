@@ -69,7 +69,8 @@ func _run() -> void:
 			heavy_speed = speed
 		body.queue_free()
 		await _steps(2)
-	_check(light_speed > heavy_speed * 3.0, "Heavy objects throw more slowly")
+	_check(light_speed > heavy_speed * 1.5 and heavy_speed > light_speed * 0.5,
+		"Heavy throws are slower but remain within a usable bounded range")
 
 	# A solid wall must block selection as well as the held body's motion.
 	_player.position = Vector3(0, 0.02, -2.7)

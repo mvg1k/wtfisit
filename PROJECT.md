@@ -12,13 +12,58 @@ and throwing household clutter provides play and stress relief.
 - Build small playable increments. No giant GameManager or speculative systems.
 - Primitive geometry, no external assets, plugins, or dependencies for now.
 
-## Implemented milestone: physics playground and held-object manipulation
+## Current tuning: movement and charged throws
+
+- Standing speed is 5.4 m/s (+20%); crouch stays 2.475 m/s and prone 1.125 m/s.
+  Acceleration/deceleration and jump settings are unchanged. No sprint.
+- Hold LMB while holding a prop to charge; release to throw. Tap is a gentle
+  toss, 0.4 s normal, 0.8 s strong, and 1.2 s maximum (clamped). At 2 kg,
+  launch speed additions are 4/9/14/19 m/s respectively.
+- Mass response is `(2 / mass)^0.25`, clamped to 0.65-1.2. Throwing adds 50%
+  of player velocity (capped at 3 m/s), retains up to 4 m/s of prop motion,
+  and caps total launch speed at 26 m/s. Drop still preserves momentum.
+- Throws add camera-relative tumble with an orientation contribution, a small
+  random variation, and mass/size scaling. Existing spin contributes; the result
+  is capped at 7 rad/s. Damping is restored, and physics owns flight/contacts.
+- Charge is reported only in debug builds in the F3 stats. Drop, Escape, focus
+  loss, forced release, deletion and restart clear it; cursor recapture cannot
+  charge. Changing stance continues charging while the hold remains safe.
+
+## Physical search behaviors (Prompt #4)
+
+- Start with FIND YOUR KEYS. One physical keys target spawns at a randomly
+  selected authored SearchSpot. Looking at it does not count: pickup completes
+  the run, freezes the time, and displays FOUND YOUR KEYS.
+- Enter after completion rebuilds the entire room, resets the player/timer,
+  and chooses a different spot. The previous spot is excluded when alternatives
+  exist; a single valid spot may repeat. No persistence or global singleton.
+- Seventeen authored spots: 3 SURFACE, 4 OCCLUDED, 4 LOW_UNDER, 3 BEHIND,
+  and 3 HIGH. Category-first selection avoids the last two categories and last
+  three spots where possible, with graceful fallback for small candidate pools.
+  Each has enabled/category metadata; initial overlap checks reject blocked placements.
+  No available spots yields an explicit unavailable state with Enter to retry.
+- Time is monotonic wall-clock time, including cursor release/focus loss.
+  The sandbox continues running after completion; only the run timer stops.
+- F4 explicitly shows search diagnostics (state/target/spot/category), hidden by default
+  and gated to debug builds. F7 rerolls only while those diagnostics are shown.
+  Enter is restart; R remains exclusively held-object rotation.
+- Ctrl is hold-to-crouch; Z toggles prone. Camera and capsule ease between actual
+  heights of 1.8/1.0/0.5 m. Rising checks full
+  capsule clearance. Feet stay fixed; prone cannot jump. F3 also reports stance.
+- The room includes a bed, couch, desk/hutch, bedside table, shelving, wardrobe,
+  movable covers, boxes and two stools. Low spots use crouch/prone viewpoints;
+  covered spots require moving props. High routes use ordinary jumps onto broad
+  movable supports, including box-to-desktop access to the hutch. No mantling.
+- Player take-off does not inherit small platform contact velocities, avoiding
+  jitter-induced launches when jumping from movable supports.
+
+## Preserved physics prototype
 
 - Typed GDScript, Godot 4.x (4.3+ APIs), Windows/desktop first.
 - Compatibility renderer, Godot Physics, 60 Hz physics. Validated with the locally
   installed Godot 4.7.2; see README for commands. Angular sleep threshold is
   0.25 rad/s so small resting props can sleep despite minor contact jitter.
-- One enclosed graybox room, table, impact block, and eight sleeping rigid props
+- Original enclosed graybox room, table, impact block, and eight sleeping rigid props
   of different shapes and masses (0.25–12 kg).
 - Accelerated first-person movement, jump, mouse look, center-ray pickup,
   force-based hold, drop, mass-sensitive throw, optional debug statistics.
@@ -31,23 +76,42 @@ and throwing household clutter provides play and stress relief.
   restoration limit instability. No transform-following or frozen held props.
 - A capped, inertia-aware torque controller maintains the chosen orientation
   while held. Limited angular lag avoids building up rotation against furniture.
-  Drop/throw preserve momentum and restore the body's original damping.
+  Drop preserves momentum; release restores the body's original damping.
 - Prop bounds are cached at pickup for conservative clearance. Walls may shorten
   the actual distance; insufficient space or a target inside the player causes
   release instead of pulling through the player.
+- Native CCD remains enabled. A full-body motion sweep supplements it for thrown
+  props moving at least 2 m/s, because native support-point rays can miss thin
+  furniture. Only an imminent collision reduces travel to a small contact overlap;
+  the physics engine and 60 Hz rate are unchanged. The charged throw uses the
+  same protection, validated up to its 26 m/s launch cap with tumbling.
+  The first sweep reads the physics server's updated launch velocity.
+  Slow bodies skip the sweep but remain tracked until sleeping (a falling prop can
+  accelerate again); re-pickup and deletion also remove them. No per-prop scripts.
 - Camera release/focus loss drops the held object. Physics continues running.
 
 ## Structure and conventions
 
-- `scenes/test_room.tscn`: editable room and prop instances; main scene.
-- `scenes/player.tscn`, `scripts/player_controller.gd`: movement and mouse capture.
+- `scenes/search_game.tscn`: main scene; local SearchRun controller and minimal HUD.
+- `scripts/search_run.gd`: run state, selection, target identity, timer, and reset.
+  It listens to the grabber's generic `object_picked_up` signal; no target logic
+  lives in the player or grabber.
+- `scenes/search_room.tscn`: expanded furniture playground, movable covers/supports
+  and seventeen SearchSpot markers. SearchRoom exposes grabber/spot-root references.
+- `scripts/search_spot.gd`: lightweight authored marker with category and
+  placement checks, queried only at run start.
+- `scenes/props/keys.tscn`, `scripts/target_item.gd`: physical TargetItem identity
+  and simple keys geometry. Only keys are implemented.
+- `scripts/search_hud.gd`: objective, timer, result, opt-in search diagnostics.
+- `scenes/test_room.tscn`: preserved standalone physics test room.
+- `scenes/player.tscn`, `scripts/player_controller.gd`: movement, stance and mouse capture.
 - `scripts/physics_grabber.gd`: interaction; exported references and tuning.
   As a child of Player, it consumes rotation mouse events before camera look.
-  Movement and the existing linear spring/throw tuning remain unchanged.
+  Linear spring/held-rotation tuning remains unchanged; charge is local to the grabber.
 - `scenes/props/physics_prop.tscn`: reusable ordinary RigidBody3D with primitive
   mesh/collider, grabbable group, CCD, and sleeping enabled. No prop script.
 - `scenes/debug_overlay.tscn`, `scripts/debug_overlay.gd`: crosshair, controls,
-  optional FPS/held-body/distance statistics refreshed at 5 Hz.
+  optional FPS/held-body/distance/stance/charge statistics refreshed at 5 Hz.
 - Collision layers: 1 World, 2 Player, 3 Props. Picking checks World + Props so
   walls block interaction. Eligible props belong to `grabbable`.
 - Use unit-scale physics roots; resize shapes/meshes. Keep generated `.gd.uid`
@@ -55,7 +119,8 @@ and throwing household clutter provides play and stress relief.
 
 ## Performance philosophy
 
-Idle props may sleep; only the held body receives continuous forces. Avoid
+Idle props may sleep; only the held body receives continuous forces. Fast thrown
+props receive one full-body sweep per physics step until they slow down. Avoid
 per-prop frame callbacks, contact monitoring, and unnecessary scene scans.
 Use inexpensive primitive/convex compound colliders. Future destruction must use
 bounded debris and inexpensive state changes; benchmark representative physics
@@ -64,7 +129,7 @@ prototype is not a destruction-performance benchmark.
 
 ## Future systems — NOT IMPLEMENTED
 
-Search targets/random hiding spots, containers, hints, dedicated inspection UI,
+Additional targets/rooms, containers, hints, dedicated inspection UI, audio,
 destruction/material responses, tools, fire, liquids, electricity, inventory,
 economy/rewards, challenges, unlocks/progression, procedural rooms, saving,
 menus, easter eggs, and polished art. No work on these is part of this milestone.

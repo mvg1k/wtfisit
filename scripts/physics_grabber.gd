@@ -1,6 +1,8 @@
 class_name PhysicsGrabber
 extends Node3D
 
+signal object_picked_up(body: RigidBody3D)
+
 @export var camera: Camera3D
 @export var player: SandboxPlayer
 @export var player_shape: CollisionShape3D
@@ -21,10 +23,20 @@ extends Node3D
 @export var max_acceleration: float = 50.0
 @export var max_force: float = 240.0
 @export var break_distance: float = 2.8
-@export var throw_impulse: float = 14.0
-@export var max_throw_speed_change: float = 12.0
+@export var throw_charge_duration: float = 1.2
+@export var toss_speed: float = 4.0
+@export var full_throw_speed: float = 19.0
+@export var player_throw_inheritance: float = 0.5
+@export var max_throw_speed: float = 26.0
+@export var max_throw_spin: float = 7.0
 
 var held_body: RigidBody3D
+var is_charging_throw: bool = false
+var throw_charge: float:
+	get:
+		return clampf(_charge_seconds / throw_charge_duration, 0.0, 1.0)
+var _charge_seconds: float = 0.0
+var _throw_rng := RandomNumberGenerator.new()
 var current_hold_distance: float = 2.0
 var _minimum_distance: float = 1.1
 var _held_radius: float = 0.0
@@ -34,10 +46,25 @@ var _obstructed_time: float = 0.0
 var _interact_requested: bool = false
 var _throw_requested: bool = false
 var _released_bodies: Array[RigidBody3D] = []
+var _thrown_bodies: Array[RigidBody3D] = []
+var _throw_motion := PhysicsTestMotionParameters3D.new()
+var _throw_result := PhysicsTestMotionResult3D.new()
 var _gravity: float = float(ProjectSettings.get_setting("physics/3d/default_gravity"))
 
 
+func _ready() -> void:
+	_throw_rng.randomize()
+
+
+func _notification(what: int) -> void:
+	if what == NOTIFICATION_APPLICATION_FOCUS_OUT:
+		release()
+
+
 func _unhandled_input(event: InputEvent) -> void:
+	if event.is_action_pressed("release_mouse"):
+		release()
+		return
 	if not player.mouse_captured:
 		return
 	if is_instance_valid(held_body):
@@ -58,11 +85,17 @@ func _unhandled_input(event: InputEvent) -> void:
 	if event.is_action_pressed("interact"):
 		_interact_requested = true
 	elif event.is_action_pressed("throw_object"):
+		if is_instance_valid(held_body) and not is_charging_throw and not _throw_requested:
+			_charge_seconds = 0.0
+			is_charging_throw = true
+	elif event.is_action_released("throw_object") and is_charging_throw:
+		is_charging_throw = false
 		_throw_requested = true
 
 
 func _physics_process(delta: float) -> void:
 	_restore_player_collisions()
+	_update_thrown_bodies(delta)
 	if not player.mouse_captured:
 		release()
 		_interact_requested = false
@@ -74,11 +107,15 @@ func _physics_process(delta: float) -> void:
 		else:
 			try_pick_up()
 	elif _throw_requested:
-		release(true)
+		release(true, _charge_seconds)
 	_interact_requested = false
 	_throw_requested = false
 	if is_instance_valid(held_body):
+		if is_charging_throw:
+			_charge_seconds = minf(_charge_seconds + delta, throw_charge_duration)
 		_update_hold(delta)
+	else:
+		_reset_throw_charge()
 
 
 func try_pick_up() -> void:
@@ -95,7 +132,9 @@ func try_pick_up() -> void:
 		return
 	current_hold_distance = clampf(hold_distance, _minimum_distance, max_hold_distance)
 	_rotation_target = body.global_basis.get_rotation_quaternion()
+	_reset_throw_charge()
 	held_body = body
+	_thrown_bodies.erase(body)
 	_released_bodies.erase(body)
 	_saved_angular_damp = body.angular_damp
 	body.angular_damp = maxf(body.angular_damp, 3.0)
@@ -103,9 +142,11 @@ func try_pick_up() -> void:
 	player.add_collision_exception_with(body)
 	body.sleeping = false
 	_obstructed_time = 0.0
+	object_picked_up.emit(body)
 
 
-func release(throw_held: bool = false) -> void:
+func release(throw_held: bool = false, charge_seconds: float = 0.4) -> void:
+	_reset_throw_charge()
 	if not is_instance_valid(held_body):
 		held_body = null
 		return
@@ -115,8 +156,65 @@ func release(throw_held: bool = false) -> void:
 	# Restore collision only after separation, never inside the player's capsule.
 	_released_bodies.append(body)
 	if throw_held:
-		var impulse := minf(throw_impulse, body.mass * max_throw_speed_change)
-		body.apply_central_impulse(-camera.global_basis.z * impulse)
+		_apply_throw(body, charge_seconds)
+		_thrown_bodies.append(body)
+		_limit_throw_motion(body, get_physics_process_delta_time())
+
+
+func _reset_throw_charge() -> void:
+	is_charging_throw = false
+	_charge_seconds = 0.0
+	_throw_requested = false
+
+
+func _throw_mass_factor(mass: float) -> float:
+	# A gentle, bounded response keeps heavy household props useful.
+	return clampf(pow(2.0 / maxf(mass, 0.01), 0.25), 0.65, 1.2)
+
+
+func _apply_throw(body: RigidBody3D, charge_seconds: float) -> void:
+	var charge := clampf(charge_seconds / throw_charge_duration, 0.0, 1.0)
+	var mass_factor := _throw_mass_factor(body.mass)
+	var speed := lerpf(toss_speed, full_throw_speed, charge) * mass_factor
+	var velocity: Vector3 = PhysicsServer3D.body_get_state(body.get_rid(), PhysicsServer3D.BODY_STATE_LINEAR_VELOCITY)
+	var inherited := (player.velocity * player_throw_inheritance).limit_length(3.0)
+	body.linear_velocity = (velocity.limit_length(4.0) + inherited - camera.global_basis.z * speed).limit_length(max_throw_speed)
+	if not body.lock_rotation:
+		var spin: Vector3 = PhysicsServer3D.body_get_state(body.get_rid(), PhysicsServer3D.BODY_STATE_ANGULAR_VELOCITY)
+		var axis := (camera.global_basis.x + body.global_basis.y * 0.2
+			+ camera.global_basis.y * _throw_rng.randf_range(-0.2, 0.2)).normalized()
+		var size_factor := 1.0 / maxf(1.0, _body_radius(body) * 1.5)
+		var added_spin := lerpf(2.5, 6.0, charge) * mass_factor * size_factor * _throw_rng.randf_range(0.9, 1.1)
+		body.angular_velocity = (spin + axis * added_spin).limit_length(max_throw_spin)
+
+
+func _update_thrown_bodies(delta: float) -> void:
+	for index in range(_thrown_bodies.size() - 1, -1, -1):
+		var body := _thrown_bodies[index]
+		# Native CCD and the contact solver handle slow motion/resting contacts.
+		if not is_instance_valid(body) or body.sleeping:
+			_thrown_bodies.remove_at(index)
+			continue
+		var velocity: Vector3 = PhysicsServer3D.body_get_state(body.get_rid(), PhysicsServer3D.BODY_STATE_LINEAR_VELOCITY)
+		if velocity.length_squared() >= 4.0:
+			_limit_throw_motion(body, delta)
+
+
+func _limit_throw_motion(body: RigidBody3D, delta: float) -> void:
+	# Godot Physics CCD uses support-point rays, which can miss thin furniture
+	# between the rays. Sweep all body shapes during the fast part of a throw.
+	# No transform writes, persistent prop callbacks, or change to free-flight speed.
+	_throw_motion.from = body.global_transform
+	# Read the current solver velocity, including this tick's launch change.
+	var velocity: Vector3 = PhysicsServer3D.body_get_state(body.get_rid(), PhysicsServer3D.BODY_STATE_LINEAR_VELOCITY)
+	_throw_motion.motion = velocity * delta
+	_throw_motion.margin = 0.001
+	_throw_motion.exclude_bodies = [player.get_rid()]
+	if PhysicsServer3D.body_test_motion(body.get_rid(), _throw_motion, _throw_result):
+		# Leave a tiny contact overlap so the normal solver supplies bounce/friction.
+		var travel := _throw_result.get_collision_unsafe_fraction() * _throw_motion.motion.length()
+		var speed := minf(velocity.length(), (travel + 0.001) / delta)
+		body.linear_velocity = velocity.normalized() * speed
 
 
 func _update_hold(delta: float) -> void:

@@ -1,0 +1,1721 @@
+[gd_scene load_steps=159 format=3]
+
+[ext_resource type="Script" path="res://scripts/search_room.gd" id="1"]
+[ext_resource type="PackedScene" path="res://scenes/player.tscn" id="2"]
+[ext_resource type="Script" path="res://scripts/search_spot.gd" id="3"]
+[ext_resource type="PackedScene" path="res://scenes/debug_overlay.tscn" id="4"]
+
+[sub_resource type="StandardMaterial3D" id="Wall"]
+albedo_color = Color(0.61, 0.62, 0.63, 1)
+roughness = 0.85
+
+[sub_resource type="StandardMaterial3D" id="Floor"]
+albedo_color = Color(0.30, 0.32, 0.34, 1)
+roughness = 0.85
+
+[sub_resource type="StandardMaterial3D" id="Wood"]
+albedo_color = Color(0.46, 0.43, 0.38, 1)
+roughness = 0.85
+
+[sub_resource type="StandardMaterial3D" id="Bed"]
+albedo_color = Color(0.44, 0.51, 0.57, 1)
+roughness = 0.85
+
+[sub_resource type="StandardMaterial3D" id="Couch"]
+albedo_color = Color(0.42, 0.50, 0.45, 1)
+roughness = 0.85
+
+[sub_resource type="StandardMaterial3D" id="Clutter"]
+albedo_color = Color(0.62, 0.54, 0.39, 1)
+roughness = 0.85
+
+[sub_resource type="PhysicsMaterial" id="PropPhysics"]
+friction = 0.9
+bounce = 0.0
+
+[sub_resource type="Environment" id="Environment"]
+background_mode = 1
+background_color = Color(0.18, 0.20, 0.23, 1)
+ambient_light_source = 3
+ambient_light_color = Color(0.90, 0.93, 1, 1)
+ambient_light_energy = 0.6
+
+[sub_resource type="BoxMesh" id="FloorMesh"]
+size = Vector3(14, 0.4, 14)
+material = SubResource("Floor")
+
+[sub_resource type="BoxShape3D" id="FloorShape"]
+size = Vector3(14, 0.4, 14)
+
+[sub_resource type="BoxMesh" id="CeilingMesh"]
+size = Vector3(14, 0.2, 14)
+material = SubResource("Wall")
+
+[sub_resource type="BoxShape3D" id="CeilingShape"]
+size = Vector3(14, 0.2, 14)
+
+[sub_resource type="BoxMesh" id="NorthWallMesh"]
+size = Vector3(14.4, 6, 0.4)
+material = SubResource("Wall")
+
+[sub_resource type="BoxShape3D" id="NorthWallShape"]
+size = Vector3(14.4, 6, 0.4)
+
+[sub_resource type="BoxMesh" id="SouthWallMesh"]
+size = Vector3(14.4, 6, 0.4)
+material = SubResource("Wall")
+
+[sub_resource type="BoxShape3D" id="SouthWallShape"]
+size = Vector3(14.4, 6, 0.4)
+
+[sub_resource type="BoxMesh" id="WestWallMesh"]
+size = Vector3(0.4, 6, 14)
+material = SubResource("Wall")
+
+[sub_resource type="BoxShape3D" id="WestWallShape"]
+size = Vector3(0.4, 6, 14)
+
+[sub_resource type="BoxMesh" id="EastWallMesh"]
+size = Vector3(0.4, 6, 14)
+material = SubResource("Wall")
+
+[sub_resource type="BoxShape3D" id="EastWallShape"]
+size = Vector3(0.4, 6, 14)
+
+[sub_resource type="BoxMesh" id="BedTopMesh"]
+size = Vector3(3.4, 0.3, 3)
+material = SubResource("Bed")
+
+[sub_resource type="BoxShape3D" id="BedTopShape"]
+size = Vector3(3.4, 0.3, 3)
+
+[sub_resource type="BoxMesh" id="BedLeg0Mesh"]
+size = Vector3(0.18, 0.7, 0.18)
+material = SubResource("Wood")
+
+[sub_resource type="BoxShape3D" id="BedLeg0Shape"]
+size = Vector3(0.18, 0.7, 0.18)
+
+[sub_resource type="BoxMesh" id="BedLeg1Mesh"]
+size = Vector3(0.18, 0.7, 0.18)
+material = SubResource("Wood")
+
+[sub_resource type="BoxShape3D" id="BedLeg1Shape"]
+size = Vector3(0.18, 0.7, 0.18)
+
+[sub_resource type="BoxMesh" id="BedLeg2Mesh"]
+size = Vector3(0.18, 0.7, 0.18)
+material = SubResource("Wood")
+
+[sub_resource type="BoxShape3D" id="BedLeg2Shape"]
+size = Vector3(0.18, 0.7, 0.18)
+
+[sub_resource type="BoxMesh" id="BedLeg3Mesh"]
+size = Vector3(0.18, 0.7, 0.18)
+material = SubResource("Wood")
+
+[sub_resource type="BoxShape3D" id="BedLeg3Shape"]
+size = Vector3(0.18, 0.7, 0.18)
+
+[sub_resource type="BoxMesh" id="HeadboardMesh"]
+size = Vector3(3.4, 1.1, 0.16)
+material = SubResource("Wood")
+
+[sub_resource type="BoxShape3D" id="HeadboardShape"]
+size = Vector3(3.4, 1.1, 0.16)
+
+[sub_resource type="BoxMesh" id="CouchTopMesh"]
+size = Vector3(3.5, 0.28, 1.6)
+material = SubResource("Couch")
+
+[sub_resource type="BoxShape3D" id="CouchTopShape"]
+size = Vector3(3.5, 0.28, 1.6)
+
+[sub_resource type="BoxMesh" id="CouchLeg0Mesh"]
+size = Vector3(0.18, 0.58, 0.18)
+material = SubResource("Wood")
+
+[sub_resource type="BoxShape3D" id="CouchLeg0Shape"]
+size = Vector3(0.18, 0.58, 0.18)
+
+[sub_resource type="BoxMesh" id="CouchLeg1Mesh"]
+size = Vector3(0.18, 0.58, 0.18)
+material = SubResource("Wood")
+
+[sub_resource type="BoxShape3D" id="CouchLeg1Shape"]
+size = Vector3(0.18, 0.58, 0.18)
+
+[sub_resource type="BoxMesh" id="CouchLeg2Mesh"]
+size = Vector3(0.18, 0.58, 0.18)
+material = SubResource("Wood")
+
+[sub_resource type="BoxShape3D" id="CouchLeg2Shape"]
+size = Vector3(0.18, 0.58, 0.18)
+
+[sub_resource type="BoxMesh" id="CouchLeg3Mesh"]
+size = Vector3(0.18, 0.58, 0.18)
+material = SubResource("Wood")
+
+[sub_resource type="BoxShape3D" id="CouchLeg3Shape"]
+size = Vector3(0.18, 0.58, 0.18)
+
+[sub_resource type="BoxMesh" id="CouchBackMesh"]
+size = Vector3(3.5, 1.08, 0.2)
+material = SubResource("Couch")
+
+[sub_resource type="BoxShape3D" id="CouchBackShape"]
+size = Vector3(3.5, 1.08, 0.2)
+
+[sub_resource type="BoxMesh" id="CouchArmAMesh"]
+size = Vector3(0.22, 0.8, 1.6)
+material = SubResource("Couch")
+
+[sub_resource type="BoxShape3D" id="CouchArmAShape"]
+size = Vector3(0.22, 0.8, 1.6)
+
+[sub_resource type="BoxMesh" id="CouchArmBMesh"]
+size = Vector3(0.22, 0.8, 1.6)
+material = SubResource("Couch")
+
+[sub_resource type="BoxShape3D" id="CouchArmBShape"]
+size = Vector3(0.22, 0.8, 1.6)
+
+[sub_resource type="BoxMesh" id="DeskTopMesh"]
+size = Vector3(3.2, 0.2, 2.2)
+material = SubResource("Wood")
+
+[sub_resource type="BoxShape3D" id="DeskTopShape"]
+size = Vector3(3.2, 0.2, 2.2)
+
+[sub_resource type="BoxMesh" id="DeskLeg0Mesh"]
+size = Vector3(0.18, 1.0499999999999998, 0.18)
+material = SubResource("Wood")
+
+[sub_resource type="BoxShape3D" id="DeskLeg0Shape"]
+size = Vector3(0.18, 1.0499999999999998, 0.18)
+
+[sub_resource type="BoxMesh" id="DeskLeg1Mesh"]
+size = Vector3(0.18, 1.0499999999999998, 0.18)
+material = SubResource("Wood")
+
+[sub_resource type="BoxShape3D" id="DeskLeg1Shape"]
+size = Vector3(0.18, 1.0499999999999998, 0.18)
+
+[sub_resource type="BoxMesh" id="DeskLeg2Mesh"]
+size = Vector3(0.18, 1.0499999999999998, 0.18)
+material = SubResource("Wood")
+
+[sub_resource type="BoxShape3D" id="DeskLeg2Shape"]
+size = Vector3(0.18, 1.0499999999999998, 0.18)
+
+[sub_resource type="BoxMesh" id="DeskLeg3Mesh"]
+size = Vector3(0.18, 1.0499999999999998, 0.18)
+material = SubResource("Wood")
+
+[sub_resource type="BoxShape3D" id="DeskLeg3Shape"]
+size = Vector3(0.18, 1.0499999999999998, 0.18)
+
+[sub_resource type="BoxMesh" id="BedsideTopMesh"]
+size = Vector3(0.9, 0.14, 0.9)
+material = SubResource("Wood")
+
+[sub_resource type="BoxShape3D" id="BedsideTopShape"]
+size = Vector3(0.9, 0.14, 0.9)
+
+[sub_resource type="BoxMesh" id="BedsideLeg0Mesh"]
+size = Vector3(0.18, 0.6299999999999999, 0.18)
+material = SubResource("Wood")
+
+[sub_resource type="BoxShape3D" id="BedsideLeg0Shape"]
+size = Vector3(0.18, 0.6299999999999999, 0.18)
+
+[sub_resource type="BoxMesh" id="BedsideLeg1Mesh"]
+size = Vector3(0.18, 0.6299999999999999, 0.18)
+material = SubResource("Wood")
+
+[sub_resource type="BoxShape3D" id="BedsideLeg1Shape"]
+size = Vector3(0.18, 0.6299999999999999, 0.18)
+
+[sub_resource type="BoxMesh" id="BedsideLeg2Mesh"]
+size = Vector3(0.18, 0.6299999999999999, 0.18)
+material = SubResource("Wood")
+
+[sub_resource type="BoxShape3D" id="BedsideLeg2Shape"]
+size = Vector3(0.18, 0.6299999999999999, 0.18)
+
+[sub_resource type="BoxMesh" id="BedsideLeg3Mesh"]
+size = Vector3(0.18, 0.6299999999999999, 0.18)
+material = SubResource("Wood")
+
+[sub_resource type="BoxShape3D" id="BedsideLeg3Shape"]
+size = Vector3(0.18, 0.6299999999999999, 0.18)
+
+[sub_resource type="BoxMesh" id="WardrobeMesh"]
+size = Vector3(3, 3.1, 1.6)
+material = SubResource("Wood")
+
+[sub_resource type="BoxShape3D" id="WardrobeShape"]
+size = Vector3(3, 3.1, 1.6)
+
+[sub_resource type="BoxMesh" id="ShelfLevel0Mesh"]
+size = Vector3(2.4, 0.16, 1.1)
+material = SubResource("Wood")
+
+[sub_resource type="BoxShape3D" id="ShelfLevel0Shape"]
+size = Vector3(2.4, 0.16, 1.1)
+
+[sub_resource type="BoxMesh" id="ShelfLevel1Mesh"]
+size = Vector3(2.4, 0.16, 1.1)
+material = SubResource("Wood")
+
+[sub_resource type="BoxShape3D" id="ShelfLevel1Shape"]
+size = Vector3(2.4, 0.16, 1.1)
+
+[sub_resource type="BoxMesh" id="ShelfLevel2Mesh"]
+size = Vector3(2.4, 0.16, 1.1)
+material = SubResource("Wood")
+
+[sub_resource type="BoxShape3D" id="ShelfLevel2Shape"]
+size = Vector3(2.4, 0.16, 1.1)
+
+[sub_resource type="BoxMesh" id="ShelfSideAMesh"]
+size = Vector3(0.14, 3.4, 1.1)
+material = SubResource("Wood")
+
+[sub_resource type="BoxShape3D" id="ShelfSideAShape"]
+size = Vector3(0.14, 3.4, 1.1)
+
+[sub_resource type="BoxMesh" id="ShelfSideBMesh"]
+size = Vector3(0.14, 3.4, 1.1)
+material = SubResource("Wood")
+
+[sub_resource type="BoxShape3D" id="ShelfSideBShape"]
+size = Vector3(0.14, 3.4, 1.1)
+
+[sub_resource type="BoxMesh" id="HutchTopMesh"]
+size = Vector3(3.2, 0.16, 0.7)
+material = SubResource("Wood")
+
+[sub_resource type="BoxShape3D" id="HutchTopShape"]
+size = Vector3(3.2, 0.16, 0.7)
+
+[sub_resource type="BoxMesh" id="HutchPostAMesh"]
+size = Vector3(0.16, 1.84, 0.7)
+material = SubResource("Wood")
+
+[sub_resource type="BoxShape3D" id="HutchPostAShape"]
+size = Vector3(0.16, 1.84, 0.7)
+
+[sub_resource type="BoxMesh" id="HutchPostBMesh"]
+size = Vector3(0.16, 1.84, 0.7)
+material = SubResource("Wood")
+
+[sub_resource type="BoxShape3D" id="HutchPostBShape"]
+size = Vector3(0.16, 1.84, 0.7)
+
+[sub_resource type="BoxMesh" id="CoveredBoxLidMesh"]
+size = Vector3(0.95, 0.08, 0.95)
+material = SubResource("Clutter")
+
+[sub_resource type="BoxShape3D" id="CoveredBoxLidShape"]
+size = Vector3(0.95, 0.08, 0.95)
+
+[sub_resource type="BoxMesh" id="CoveredBoxSide0Mesh"]
+size = Vector3(0.07, 0.52, 0.95)
+material = SubResource("Clutter")
+
+[sub_resource type="BoxShape3D" id="CoveredBoxSide0Shape"]
+size = Vector3(0.07, 0.52, 0.95)
+
+[sub_resource type="BoxMesh" id="CoveredBoxEnd0Mesh"]
+size = Vector3(0.8099999999999999, 0.52, 0.07)
+material = SubResource("Clutter")
+
+[sub_resource type="BoxShape3D" id="CoveredBoxEnd0Shape"]
+size = Vector3(0.8099999999999999, 0.52, 0.07)
+
+[sub_resource type="BoxMesh" id="CoveredBoxSide1Mesh"]
+size = Vector3(0.07, 0.52, 0.95)
+material = SubResource("Clutter")
+
+[sub_resource type="BoxShape3D" id="CoveredBoxSide1Shape"]
+size = Vector3(0.07, 0.52, 0.95)
+
+[sub_resource type="BoxMesh" id="CoveredBoxEnd1Mesh"]
+size = Vector3(0.8099999999999999, 0.52, 0.07)
+material = SubResource("Clutter")
+
+[sub_resource type="BoxShape3D" id="CoveredBoxEnd1Shape"]
+size = Vector3(0.8099999999999999, 0.52, 0.07)
+
+[sub_resource type="BoxMesh" id="FloorTrayLidMesh"]
+size = Vector3(0.8, 0.08, 0.8)
+material = SubResource("Clutter")
+
+[sub_resource type="BoxShape3D" id="FloorTrayLidShape"]
+size = Vector3(0.8, 0.08, 0.8)
+
+[sub_resource type="BoxMesh" id="FloorTraySide0Mesh"]
+size = Vector3(0.07, 0.21999999999999997, 0.8)
+material = SubResource("Clutter")
+
+[sub_resource type="BoxShape3D" id="FloorTraySide0Shape"]
+size = Vector3(0.07, 0.21999999999999997, 0.8)
+
+[sub_resource type="BoxMesh" id="FloorTrayEnd0Mesh"]
+size = Vector3(0.66, 0.21999999999999997, 0.07)
+material = SubResource("Clutter")
+
+[sub_resource type="BoxShape3D" id="FloorTrayEnd0Shape"]
+size = Vector3(0.66, 0.21999999999999997, 0.07)
+
+[sub_resource type="BoxMesh" id="FloorTraySide1Mesh"]
+size = Vector3(0.07, 0.21999999999999997, 0.8)
+material = SubResource("Clutter")
+
+[sub_resource type="BoxShape3D" id="FloorTraySide1Shape"]
+size = Vector3(0.07, 0.21999999999999997, 0.8)
+
+[sub_resource type="BoxMesh" id="FloorTrayEnd1Mesh"]
+size = Vector3(0.66, 0.21999999999999997, 0.07)
+material = SubResource("Clutter")
+
+[sub_resource type="BoxShape3D" id="FloorTrayEnd1Shape"]
+size = Vector3(0.66, 0.21999999999999997, 0.07)
+
+[sub_resource type="BoxMesh" id="DeskCoverLidMesh"]
+size = Vector3(0.9, 0.08, 0.8)
+material = SubResource("Clutter")
+
+[sub_resource type="BoxShape3D" id="DeskCoverLidShape"]
+size = Vector3(0.9, 0.08, 0.8)
+
+[sub_resource type="BoxMesh" id="DeskCoverSide0Mesh"]
+size = Vector3(0.07, 0.42, 0.8)
+material = SubResource("Clutter")
+
+[sub_resource type="BoxShape3D" id="DeskCoverSide0Shape"]
+size = Vector3(0.07, 0.42, 0.8)
+
+[sub_resource type="BoxMesh" id="DeskCoverEnd0Mesh"]
+size = Vector3(0.76, 0.42, 0.07)
+material = SubResource("Clutter")
+
+[sub_resource type="BoxShape3D" id="DeskCoverEnd0Shape"]
+size = Vector3(0.76, 0.42, 0.07)
+
+[sub_resource type="BoxMesh" id="DeskCoverSide1Mesh"]
+size = Vector3(0.07, 0.42, 0.8)
+material = SubResource("Clutter")
+
+[sub_resource type="BoxShape3D" id="DeskCoverSide1Shape"]
+size = Vector3(0.07, 0.42, 0.8)
+
+[sub_resource type="BoxMesh" id="DeskCoverEnd1Mesh"]
+size = Vector3(0.76, 0.42, 0.07)
+material = SubResource("Clutter")
+
+[sub_resource type="BoxShape3D" id="DeskCoverEnd1Shape"]
+size = Vector3(0.76, 0.42, 0.07)
+
+[sub_resource type="BoxMesh" id="ClutterScreenMesh"]
+size = Vector3(1, 1.3, 0.3)
+material = SubResource("Clutter")
+
+[sub_resource type="BoxShape3D" id="ClutterScreenShape"]
+size = Vector3(1, 1.3, 0.3)
+
+[sub_resource type="BoxMesh" id="WardrobeStepMesh"]
+size = Vector3(1.2, 0.8, 1.2)
+material = SubResource("Clutter")
+
+[sub_resource type="BoxShape3D" id="WardrobeStepShape"]
+size = Vector3(1.2, 0.8, 1.2)
+
+[sub_resource type="BoxMesh" id="ShelfStepMesh"]
+size = Vector3(1.2, 1, 1.2)
+material = SubResource("Clutter")
+
+[sub_resource type="BoxShape3D" id="ShelfStepShape"]
+size = Vector3(1.2, 1, 1.2)
+
+[sub_resource type="BoxMesh" id="DeskStepMesh"]
+size = Vector3(1.2, 0.7, 1.2)
+material = SubResource("Clutter")
+
+[sub_resource type="BoxShape3D" id="DeskStepShape"]
+size = Vector3(1.2, 0.7, 1.2)
+
+[sub_resource type="BoxMesh" id="SpareBoxMesh"]
+size = Vector3(1.15, 0.65, 1.15)
+material = SubResource("Clutter")
+
+[sub_resource type="BoxShape3D" id="SpareBoxShape"]
+size = Vector3(1.15, 0.65, 1.15)
+
+[sub_resource type="BoxMesh" id="SmallStackBoxMesh"]
+size = Vector3(0.95, 0.5, 0.95)
+material = SubResource("Clutter")
+
+[sub_resource type="BoxShape3D" id="SmallStackBoxShape"]
+size = Vector3(0.95, 0.5, 0.95)
+
+[sub_resource type="BoxMesh" id="LowStoolSeatMesh"]
+size = Vector3(1, 0.12, 1)
+material = SubResource("Wood")
+
+[sub_resource type="BoxShape3D" id="LowStoolSeatShape"]
+size = Vector3(1, 0.12, 1)
+
+[sub_resource type="BoxMesh" id="LowStoolFoot0Mesh"]
+size = Vector3(0.14, 0.48, 0.14)
+material = SubResource("Wood")
+
+[sub_resource type="BoxShape3D" id="LowStoolFoot0Shape"]
+size = Vector3(0.14, 0.48, 0.14)
+
+[sub_resource type="BoxMesh" id="LowStoolFoot1Mesh"]
+size = Vector3(0.14, 0.48, 0.14)
+material = SubResource("Wood")
+
+[sub_resource type="BoxShape3D" id="LowStoolFoot1Shape"]
+size = Vector3(0.14, 0.48, 0.14)
+
+[sub_resource type="BoxMesh" id="LowStoolFoot2Mesh"]
+size = Vector3(0.14, 0.48, 0.14)
+material = SubResource("Wood")
+
+[sub_resource type="BoxShape3D" id="LowStoolFoot2Shape"]
+size = Vector3(0.14, 0.48, 0.14)
+
+[sub_resource type="BoxMesh" id="LowStoolFoot3Mesh"]
+size = Vector3(0.14, 0.48, 0.14)
+material = SubResource("Wood")
+
+[sub_resource type="BoxShape3D" id="LowStoolFoot3Shape"]
+size = Vector3(0.14, 0.48, 0.14)
+
+[sub_resource type="BoxMesh" id="TallStoolSeatMesh"]
+size = Vector3(1, 0.12, 1)
+material = SubResource("Wood")
+
+[sub_resource type="BoxShape3D" id="TallStoolSeatShape"]
+size = Vector3(1, 0.12, 1)
+
+[sub_resource type="BoxMesh" id="TallStoolFoot0Mesh"]
+size = Vector3(0.14, 0.73, 0.14)
+material = SubResource("Wood")
+
+[sub_resource type="BoxShape3D" id="TallStoolFoot0Shape"]
+size = Vector3(0.14, 0.73, 0.14)
+
+[sub_resource type="BoxMesh" id="TallStoolFoot1Mesh"]
+size = Vector3(0.14, 0.73, 0.14)
+material = SubResource("Wood")
+
+[sub_resource type="BoxShape3D" id="TallStoolFoot1Shape"]
+size = Vector3(0.14, 0.73, 0.14)
+
+[sub_resource type="BoxMesh" id="TallStoolFoot2Mesh"]
+size = Vector3(0.14, 0.73, 0.14)
+material = SubResource("Wood")
+
+[sub_resource type="BoxShape3D" id="TallStoolFoot2Shape"]
+size = Vector3(0.14, 0.73, 0.14)
+
+[sub_resource type="BoxMesh" id="TallStoolFoot3Mesh"]
+size = Vector3(0.14, 0.73, 0.14)
+material = SubResource("Wood")
+
+[sub_resource type="BoxShape3D" id="TallStoolFoot3Shape"]
+size = Vector3(0.14, 0.73, 0.14)
+
+[sub_resource type="BoxMesh" id="MediumBoxMesh"]
+size = Vector3(1, 0.8, 1)
+material = SubResource("Clutter")
+
+[sub_resource type="BoxShape3D" id="MediumBoxShape"]
+size = Vector3(1, 0.8, 1)
+
+[sub_resource type="BoxMesh" id="LooseBookMesh"]
+size = Vector3(0.4, 0.1, 0.6)
+material = SubResource("Clutter")
+
+[sub_resource type="BoxShape3D" id="LooseBookShape"]
+size = Vector3(0.4, 0.1, 0.6)
+
+[sub_resource type="BoxMesh" id="BedsideClutterMesh"]
+size = Vector3(0.18, 0.32, 0.18)
+material = SubResource("Clutter")
+
+[sub_resource type="BoxShape3D" id="BedsideClutterShape"]
+size = Vector3(0.18, 0.32, 0.18)
+
+[node name="SearchRoom" type="Node3D" node_paths=PackedStringArray("grabber", "spots_root")]
+script = ExtResource("1")
+grabber = NodePath("Sandbox/Player/Grabber")
+spots_root = NodePath("SearchSpots")
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment")
+
+[node name="KeyLight" type="DirectionalLight3D" parent="."]
+rotation_degrees = Vector3(-65, -20, 0)
+light_energy = 0.9
+shadow_enabled = true
+
+[node name="Fill0" type="OmniLight3D" parent="."]
+position = Vector3(-3, 4, 2)
+light_energy = 0.6
+omni_range = 9.0
+
+[node name="Fill1" type="OmniLight3D" parent="."]
+position = Vector3(3, 4, 1)
+light_energy = 0.6
+omni_range = 9.0
+
+[node name="Fill2" type="OmniLight3D" parent="."]
+position = Vector3(0, 4, -4)
+light_energy = 0.6
+omni_range = 9.0
+
+[node name="Floor" type="StaticBody3D" parent="."]
+position = Vector3(0, -0.2, 0)
+collision_layer = 1
+collision_mask = 6
+
+
+[node name="FloorMesh" type="MeshInstance3D" parent="Floor"]
+position = Vector3(0, 0, 0)
+mesh = SubResource("FloorMesh")
+cast_shadow = 1
+
+[node name="FloorCollision" type="CollisionShape3D" parent="Floor"]
+position = Vector3(0, 0, 0)
+shape = SubResource("FloorShape")
+
+[node name="Ceiling" type="StaticBody3D" parent="."]
+position = Vector3(0, 6.1, 0)
+collision_layer = 1
+collision_mask = 6
+
+
+[node name="CeilingMesh" type="MeshInstance3D" parent="Ceiling"]
+position = Vector3(0, 0, 0)
+mesh = SubResource("CeilingMesh")
+cast_shadow = 0
+
+[node name="CeilingCollision" type="CollisionShape3D" parent="Ceiling"]
+position = Vector3(0, 0, 0)
+shape = SubResource("CeilingShape")
+
+[node name="NorthWall" type="StaticBody3D" parent="."]
+position = Vector3(0, 3, -7)
+collision_layer = 1
+collision_mask = 6
+
+
+[node name="NorthWallMesh" type="MeshInstance3D" parent="NorthWall"]
+position = Vector3(0, 0, 0)
+mesh = SubResource("NorthWallMesh")
+cast_shadow = 1
+
+[node name="NorthWallCollision" type="CollisionShape3D" parent="NorthWall"]
+position = Vector3(0, 0, 0)
+shape = SubResource("NorthWallShape")
+
+[node name="SouthWall" type="StaticBody3D" parent="."]
+position = Vector3(0, 3, 7)
+collision_layer = 1
+collision_mask = 6
+
+
+[node name="SouthWallMesh" type="MeshInstance3D" parent="SouthWall"]
+position = Vector3(0, 0, 0)
+mesh = SubResource("SouthWallMesh")
+cast_shadow = 1
+
+[node name="SouthWallCollision" type="CollisionShape3D" parent="SouthWall"]
+position = Vector3(0, 0, 0)
+shape = SubResource("SouthWallShape")
+
+[node name="WestWall" type="StaticBody3D" parent="."]
+position = Vector3(-7, 3, 0)
+collision_layer = 1
+collision_mask = 6
+
+
+[node name="WestWallMesh" type="MeshInstance3D" parent="WestWall"]
+position = Vector3(0, 0, 0)
+mesh = SubResource("WestWallMesh")
+cast_shadow = 1
+
+[node name="WestWallCollision" type="CollisionShape3D" parent="WestWall"]
+position = Vector3(0, 0, 0)
+shape = SubResource("WestWallShape")
+
+[node name="EastWall" type="StaticBody3D" parent="."]
+position = Vector3(7, 3, 0)
+collision_layer = 1
+collision_mask = 6
+
+
+[node name="EastWallMesh" type="MeshInstance3D" parent="EastWall"]
+position = Vector3(0, 0, 0)
+mesh = SubResource("EastWallMesh")
+cast_shadow = 1
+
+[node name="EastWallCollision" type="CollisionShape3D" parent="EastWall"]
+position = Vector3(0, 0, 0)
+shape = SubResource("EastWallShape")
+
+[node name="BedTop" type="StaticBody3D" parent="."]
+position = Vector3(-4.4, 0.85, 1.6)
+collision_layer = 1
+collision_mask = 6
+
+
+[node name="BedTopMesh" type="MeshInstance3D" parent="BedTop"]
+position = Vector3(0, 0, 0)
+mesh = SubResource("BedTopMesh")
+cast_shadow = 1
+
+[node name="BedTopCollision" type="CollisionShape3D" parent="BedTop"]
+position = Vector3(0, 0, 0)
+shape = SubResource("BedTopShape")
+
+[node name="BedLeg0" type="StaticBody3D" parent="."]
+position = Vector3(-5.95, 0.35, 0.25)
+collision_layer = 1
+collision_mask = 6
+
+
+[node name="BedLeg0Mesh" type="MeshInstance3D" parent="BedLeg0"]
+position = Vector3(0, 0, 0)
+mesh = SubResource("BedLeg0Mesh")
+cast_shadow = 1
+
+[node name="BedLeg0Collision" type="CollisionShape3D" parent="BedLeg0"]
+position = Vector3(0, 0, 0)
+shape = SubResource("BedLeg0Shape")
+
+[node name="BedLeg1" type="StaticBody3D" parent="."]
+position = Vector3(-2.8500000000000005, 0.35, 0.25)
+collision_layer = 1
+collision_mask = 6
+
+
+[node name="BedLeg1Mesh" type="MeshInstance3D" parent="BedLeg1"]
+position = Vector3(0, 0, 0)
+mesh = SubResource("BedLeg1Mesh")
+cast_shadow = 1
+
+[node name="BedLeg1Collision" type="CollisionShape3D" parent="BedLeg1"]
+position = Vector3(0, 0, 0)
+shape = SubResource("BedLeg1Shape")
+
+[node name="BedLeg2" type="StaticBody3D" parent="."]
+position = Vector3(-5.95, 0.35, 2.95)
+collision_layer = 1
+collision_mask = 6
+
+
+[node name="BedLeg2Mesh" type="MeshInstance3D" parent="BedLeg2"]
+position = Vector3(0, 0, 0)
+mesh = SubResource("BedLeg2Mesh")
+cast_shadow = 1
+
+[node name="BedLeg2Collision" type="CollisionShape3D" parent="BedLeg2"]
+position = Vector3(0, 0, 0)
+shape = SubResource("BedLeg2Shape")
+
+[node name="BedLeg3" type="StaticBody3D" parent="."]
+position = Vector3(-2.8500000000000005, 0.35, 2.95)
+collision_layer = 1
+collision_mask = 6
+
+
+[node name="BedLeg3Mesh" type="MeshInstance3D" parent="BedLeg3"]
+position = Vector3(0, 0, 0)
+mesh = SubResource("BedLeg3Mesh")
+cast_shadow = 1
+
+[node name="BedLeg3Collision" type="CollisionShape3D" parent="BedLeg3"]
+position = Vector3(0, 0, 0)
+shape = SubResource("BedLeg3Shape")
+
+[node name="Headboard" type="StaticBody3D" parent="."]
+position = Vector3(-4.4, 1, 0.02)
+collision_layer = 1
+collision_mask = 6
+
+
+[node name="HeadboardMesh" type="MeshInstance3D" parent="Headboard"]
+position = Vector3(0, 0, 0)
+mesh = SubResource("HeadboardMesh")
+cast_shadow = 1
+
+[node name="HeadboardCollision" type="CollisionShape3D" parent="Headboard"]
+position = Vector3(0, 0, 0)
+shape = SubResource("HeadboardShape")
+
+[node name="CouchTop" type="StaticBody3D" parent="."]
+position = Vector3(4.4, 0.72, 2.5)
+collision_layer = 1
+collision_mask = 6
+
+
+[node name="CouchTopMesh" type="MeshInstance3D" parent="CouchTop"]
+position = Vector3(0, 0, 0)
+mesh = SubResource("CouchTopMesh")
+cast_shadow = 1
+
+[node name="CouchTopCollision" type="CollisionShape3D" parent="CouchTop"]
+position = Vector3(0, 0, 0)
+shape = SubResource("CouchTopShape")
+
+[node name="CouchLeg0" type="StaticBody3D" parent="."]
+position = Vector3(2.8000000000000003, 0.29, 1.85)
+collision_layer = 1
+collision_mask = 6
+
+
+[node name="CouchLeg0Mesh" type="MeshInstance3D" parent="CouchLeg0"]
+position = Vector3(0, 0, 0)
+mesh = SubResource("CouchLeg0Mesh")
+cast_shadow = 1
+
+[node name="CouchLeg0Collision" type="CollisionShape3D" parent="CouchLeg0"]
+position = Vector3(0, 0, 0)
+shape = SubResource("CouchLeg0Shape")
+
+[node name="CouchLeg1" type="StaticBody3D" parent="."]
+position = Vector3(6, 0.29, 1.85)
+collision_layer = 1
+collision_mask = 6
+
+
+[node name="CouchLeg1Mesh" type="MeshInstance3D" parent="CouchLeg1"]
+position = Vector3(0, 0, 0)
+mesh = SubResource("CouchLeg1Mesh")
+cast_shadow = 1
+
+[node name="CouchLeg1Collision" type="CollisionShape3D" parent="CouchLeg1"]
+position = Vector3(0, 0, 0)
+shape = SubResource("CouchLeg1Shape")
+
+[node name="CouchLeg2" type="StaticBody3D" parent="."]
+position = Vector3(2.8000000000000003, 0.29, 3.15)
+collision_layer = 1
+collision_mask = 6
+
+
+[node name="CouchLeg2Mesh" type="MeshInstance3D" parent="CouchLeg2"]
+position = Vector3(0, 0, 0)
+mesh = SubResource("CouchLeg2Mesh")
+cast_shadow = 1
+
+[node name="CouchLeg2Collision" type="CollisionShape3D" parent="CouchLeg2"]
+position = Vector3(0, 0, 0)
+shape = SubResource("CouchLeg2Shape")
+
+[node name="CouchLeg3" type="StaticBody3D" parent="."]
+position = Vector3(6, 0.29, 3.15)
+collision_layer = 1
+collision_mask = 6
+
+
+[node name="CouchLeg3Mesh" type="MeshInstance3D" parent="CouchLeg3"]
+position = Vector3(0, 0, 0)
+mesh = SubResource("CouchLeg3Mesh")
+cast_shadow = 1
+
+[node name="CouchLeg3Collision" type="CollisionShape3D" parent="CouchLeg3"]
+position = Vector3(0, 0, 0)
+shape = SubResource("CouchLeg3Shape")
+
+[node name="CouchBack" type="StaticBody3D" parent="."]
+position = Vector3(4.4, 1.12, 1.67)
+collision_layer = 1
+collision_mask = 6
+
+
+[node name="CouchBackMesh" type="MeshInstance3D" parent="CouchBack"]
+position = Vector3(0, 0, 0)
+mesh = SubResource("CouchBackMesh")
+cast_shadow = 1
+
+[node name="CouchBackCollision" type="CollisionShape3D" parent="CouchBack"]
+position = Vector3(0, 0, 0)
+shape = SubResource("CouchBackShape")
+
+[node name="CouchArmA" type="StaticBody3D" parent="."]
+position = Vector3(2.72, 0.98, 2.5)
+collision_layer = 1
+collision_mask = 6
+
+
+[node name="CouchArmAMesh" type="MeshInstance3D" parent="CouchArmA"]
+position = Vector3(0, 0, 0)
+mesh = SubResource("CouchArmAMesh")
+cast_shadow = 1
+
+[node name="CouchArmACollision" type="CollisionShape3D" parent="CouchArmA"]
+position = Vector3(0, 0, 0)
+shape = SubResource("CouchArmAShape")
+
+[node name="CouchArmB" type="StaticBody3D" parent="."]
+position = Vector3(6.08, 0.98, 2.5)
+collision_layer = 1
+collision_mask = 6
+
+
+[node name="CouchArmBMesh" type="MeshInstance3D" parent="CouchArmB"]
+position = Vector3(0, 0, 0)
+mesh = SubResource("CouchArmBMesh")
+cast_shadow = 1
+
+[node name="CouchArmBCollision" type="CollisionShape3D" parent="CouchArmB"]
+position = Vector3(0, 0, 0)
+shape = SubResource("CouchArmBShape")
+
+[node name="DeskTop" type="StaticBody3D" parent="."]
+position = Vector3(-3.8, 1.15, -3.6)
+collision_layer = 1
+collision_mask = 6
+
+
+[node name="DeskTopMesh" type="MeshInstance3D" parent="DeskTop"]
+position = Vector3(0, 0, 0)
+mesh = SubResource("DeskTopMesh")
+cast_shadow = 1
+
+[node name="DeskTopCollision" type="CollisionShape3D" parent="DeskTop"]
+position = Vector3(0, 0, 0)
+shape = SubResource("DeskTopShape")
+
+[node name="DeskLeg0" type="StaticBody3D" parent="."]
+position = Vector3(-5.25, 0.5249999999999999, -4.55)
+collision_layer = 1
+collision_mask = 6
+
+
+[node name="DeskLeg0Mesh" type="MeshInstance3D" parent="DeskLeg0"]
+position = Vector3(0, 0, 0)
+mesh = SubResource("DeskLeg0Mesh")
+cast_shadow = 1
+
+[node name="DeskLeg0Collision" type="CollisionShape3D" parent="DeskLeg0"]
+position = Vector3(0, 0, 0)
+shape = SubResource("DeskLeg0Shape")
+
+[node name="DeskLeg1" type="StaticBody3D" parent="."]
+position = Vector3(-2.3499999999999996, 0.5249999999999999, -4.55)
+collision_layer = 1
+collision_mask = 6
+
+
+[node name="DeskLeg1Mesh" type="MeshInstance3D" parent="DeskLeg1"]
+position = Vector3(0, 0, 0)
+mesh = SubResource("DeskLeg1Mesh")
+cast_shadow = 1
+
+[node name="DeskLeg1Collision" type="CollisionShape3D" parent="DeskLeg1"]
+position = Vector3(0, 0, 0)
+shape = SubResource("DeskLeg1Shape")
+
+[node name="DeskLeg2" type="StaticBody3D" parent="."]
+position = Vector3(-5.25, 0.5249999999999999, -2.65)
+collision_layer = 1
+collision_mask = 6
+
+
+[node name="DeskLeg2Mesh" type="MeshInstance3D" parent="DeskLeg2"]
+position = Vector3(0, 0, 0)
+mesh = SubResource("DeskLeg2Mesh")
+cast_shadow = 1
+
+[node name="DeskLeg2Collision" type="CollisionShape3D" parent="DeskLeg2"]
+position = Vector3(0, 0, 0)
+shape = SubResource("DeskLeg2Shape")
+
+[node name="DeskLeg3" type="StaticBody3D" parent="."]
+position = Vector3(-2.3499999999999996, 0.5249999999999999, -2.65)
+collision_layer = 1
+collision_mask = 6
+
+
+[node name="DeskLeg3Mesh" type="MeshInstance3D" parent="DeskLeg3"]
+position = Vector3(0, 0, 0)
+mesh = SubResource("DeskLeg3Mesh")
+cast_shadow = 1
+
+[node name="DeskLeg3Collision" type="CollisionShape3D" parent="DeskLeg3"]
+position = Vector3(0, 0, 0)
+shape = SubResource("DeskLeg3Shape")
+
+[node name="BedsideTop" type="StaticBody3D" parent="."]
+position = Vector3(-2, 0.7, 2.2)
+collision_layer = 1
+collision_mask = 6
+
+
+[node name="BedsideTopMesh" type="MeshInstance3D" parent="BedsideTop"]
+position = Vector3(0, 0, 0)
+mesh = SubResource("BedsideTopMesh")
+cast_shadow = 1
+
+[node name="BedsideTopCollision" type="CollisionShape3D" parent="BedsideTop"]
+position = Vector3(0, 0, 0)
+shape = SubResource("BedsideTopShape")
+
+[node name="BedsideLeg0" type="StaticBody3D" parent="."]
+position = Vector3(-2.3, 0.31499999999999995, 1.9000000000000001)
+collision_layer = 1
+collision_mask = 6
+
+
+[node name="BedsideLeg0Mesh" type="MeshInstance3D" parent="BedsideLeg0"]
+position = Vector3(0, 0, 0)
+mesh = SubResource("BedsideLeg0Mesh")
+cast_shadow = 1
+
+[node name="BedsideLeg0Collision" type="CollisionShape3D" parent="BedsideLeg0"]
+position = Vector3(0, 0, 0)
+shape = SubResource("BedsideLeg0Shape")
+
+[node name="BedsideLeg1" type="StaticBody3D" parent="."]
+position = Vector3(-1.7, 0.31499999999999995, 1.9000000000000001)
+collision_layer = 1
+collision_mask = 6
+
+
+[node name="BedsideLeg1Mesh" type="MeshInstance3D" parent="BedsideLeg1"]
+position = Vector3(0, 0, 0)
+mesh = SubResource("BedsideLeg1Mesh")
+cast_shadow = 1
+
+[node name="BedsideLeg1Collision" type="CollisionShape3D" parent="BedsideLeg1"]
+position = Vector3(0, 0, 0)
+shape = SubResource("BedsideLeg1Shape")
+
+[node name="BedsideLeg2" type="StaticBody3D" parent="."]
+position = Vector3(-2.3, 0.31499999999999995, 2.5)
+collision_layer = 1
+collision_mask = 6
+
+
+[node name="BedsideLeg2Mesh" type="MeshInstance3D" parent="BedsideLeg2"]
+position = Vector3(0, 0, 0)
+mesh = SubResource("BedsideLeg2Mesh")
+cast_shadow = 1
+
+[node name="BedsideLeg2Collision" type="CollisionShape3D" parent="BedsideLeg2"]
+position = Vector3(0, 0, 0)
+shape = SubResource("BedsideLeg2Shape")
+
+[node name="BedsideLeg3" type="StaticBody3D" parent="."]
+position = Vector3(-1.7, 0.31499999999999995, 2.5)
+collision_layer = 1
+collision_mask = 6
+
+
+[node name="BedsideLeg3Mesh" type="MeshInstance3D" parent="BedsideLeg3"]
+position = Vector3(0, 0, 0)
+mesh = SubResource("BedsideLeg3Mesh")
+cast_shadow = 1
+
+[node name="BedsideLeg3Collision" type="CollisionShape3D" parent="BedsideLeg3"]
+position = Vector3(0, 0, 0)
+shape = SubResource("BedsideLeg3Shape")
+
+[node name="Wardrobe" type="StaticBody3D" parent="."]
+position = Vector3(4.5, 1.55, -4.9)
+collision_layer = 1
+collision_mask = 6
+
+
+[node name="WardrobeMesh" type="MeshInstance3D" parent="Wardrobe"]
+position = Vector3(0, 0, 0)
+mesh = SubResource("WardrobeMesh")
+cast_shadow = 1
+
+[node name="WardrobeCollision" type="CollisionShape3D" parent="Wardrobe"]
+position = Vector3(0, 0, 0)
+shape = SubResource("WardrobeShape")
+
+[node name="ShelfLevel0" type="StaticBody3D" parent="."]
+position = Vector3(0.2, 1, -5.9)
+collision_layer = 1
+collision_mask = 6
+
+
+[node name="ShelfLevel0Mesh" type="MeshInstance3D" parent="ShelfLevel0"]
+position = Vector3(0, 0, 0)
+mesh = SubResource("ShelfLevel0Mesh")
+cast_shadow = 1
+
+[node name="ShelfLevel0Collision" type="CollisionShape3D" parent="ShelfLevel0"]
+position = Vector3(0, 0, 0)
+shape = SubResource("ShelfLevel0Shape")
+
+[node name="ShelfLevel1" type="StaticBody3D" parent="."]
+position = Vector3(0.2, 2, -5.9)
+collision_layer = 1
+collision_mask = 6
+
+
+[node name="ShelfLevel1Mesh" type="MeshInstance3D" parent="ShelfLevel1"]
+position = Vector3(0, 0, 0)
+mesh = SubResource("ShelfLevel1Mesh")
+cast_shadow = 1
+
+[node name="ShelfLevel1Collision" type="CollisionShape3D" parent="ShelfLevel1"]
+position = Vector3(0, 0, 0)
+shape = SubResource("ShelfLevel1Shape")
+
+[node name="ShelfLevel2" type="StaticBody3D" parent="."]
+position = Vector3(0.2, 3.32, -5.9)
+collision_layer = 1
+collision_mask = 6
+
+
+[node name="ShelfLevel2Mesh" type="MeshInstance3D" parent="ShelfLevel2"]
+position = Vector3(0, 0, 0)
+mesh = SubResource("ShelfLevel2Mesh")
+cast_shadow = 1
+
+[node name="ShelfLevel2Collision" type="CollisionShape3D" parent="ShelfLevel2"]
+position = Vector3(0, 0, 0)
+shape = SubResource("ShelfLevel2Shape")
+
+[node name="ShelfSideA" type="StaticBody3D" parent="."]
+position = Vector3(-1.07, 1.7, -5.9)
+collision_layer = 1
+collision_mask = 6
+
+
+[node name="ShelfSideAMesh" type="MeshInstance3D" parent="ShelfSideA"]
+position = Vector3(0, 0, 0)
+mesh = SubResource("ShelfSideAMesh")
+cast_shadow = 1
+
+[node name="ShelfSideACollision" type="CollisionShape3D" parent="ShelfSideA"]
+position = Vector3(0, 0, 0)
+shape = SubResource("ShelfSideAShape")
+
+[node name="ShelfSideB" type="StaticBody3D" parent="."]
+position = Vector3(1.47, 1.7, -5.9)
+collision_layer = 1
+collision_mask = 6
+
+
+[node name="ShelfSideBMesh" type="MeshInstance3D" parent="ShelfSideB"]
+position = Vector3(0, 0, 0)
+mesh = SubResource("ShelfSideBMesh")
+cast_shadow = 1
+
+[node name="ShelfSideBCollision" type="CollisionShape3D" parent="ShelfSideB"]
+position = Vector3(0, 0, 0)
+shape = SubResource("ShelfSideBShape")
+
+[node name="HutchTop" type="StaticBody3D" parent="."]
+position = Vector3(-3.8, 3.17, -4.35)
+collision_layer = 1
+collision_mask = 6
+
+
+[node name="HutchTopMesh" type="MeshInstance3D" parent="HutchTop"]
+position = Vector3(0, 0, 0)
+mesh = SubResource("HutchTopMesh")
+cast_shadow = 1
+
+[node name="HutchTopCollision" type="CollisionShape3D" parent="HutchTop"]
+position = Vector3(0, 0, 0)
+shape = SubResource("HutchTopShape")
+
+[node name="HutchPostA" type="StaticBody3D" parent="."]
+position = Vector3(-5.3, 2.17, -4.35)
+collision_layer = 1
+collision_mask = 6
+
+
+[node name="HutchPostAMesh" type="MeshInstance3D" parent="HutchPostA"]
+position = Vector3(0, 0, 0)
+mesh = SubResource("HutchPostAMesh")
+cast_shadow = 1
+
+[node name="HutchPostACollision" type="CollisionShape3D" parent="HutchPostA"]
+position = Vector3(0, 0, 0)
+shape = SubResource("HutchPostAShape")
+
+[node name="HutchPostB" type="StaticBody3D" parent="."]
+position = Vector3(-2.3, 2.17, -4.35)
+collision_layer = 1
+collision_mask = 6
+
+
+[node name="HutchPostBMesh" type="MeshInstance3D" parent="HutchPostB"]
+position = Vector3(0, 0, 0)
+mesh = SubResource("HutchPostBMesh")
+cast_shadow = 1
+
+[node name="HutchPostBCollision" type="CollisionShape3D" parent="HutchPostB"]
+position = Vector3(0, 0, 0)
+shape = SubResource("HutchPostBShape")
+
+[node name="CoveredBox" type="RigidBody3D" parent="." groups=["grabbable"]]
+position = Vector3(-4.3, 0.3, 4.7)
+collision_layer = 4
+collision_mask = 7
+mass = 1.8
+physics_material_override = SubResource("PropPhysics")
+continuous_cd = true
+linear_damp = 0.15
+angular_damp = 0.4
+
+
+[node name="CoveredBoxLidMesh" type="MeshInstance3D" parent="CoveredBox"]
+position = Vector3(0, 0.26, 0)
+mesh = SubResource("CoveredBoxLidMesh")
+cast_shadow = 1
+
+[node name="CoveredBoxLidCollision" type="CollisionShape3D" parent="CoveredBox"]
+position = Vector3(0, 0.26, 0)
+shape = SubResource("CoveredBoxLidShape")
+
+[node name="CoveredBoxSide0Mesh" type="MeshInstance3D" parent="CoveredBox"]
+position = Vector3(-0.43999999999999995, -0.04, 0)
+mesh = SubResource("CoveredBoxSide0Mesh")
+cast_shadow = 1
+
+[node name="CoveredBoxSide0Collision" type="CollisionShape3D" parent="CoveredBox"]
+position = Vector3(-0.43999999999999995, -0.04, 0)
+shape = SubResource("CoveredBoxSide0Shape")
+
+[node name="CoveredBoxEnd0Mesh" type="MeshInstance3D" parent="CoveredBox"]
+position = Vector3(0, -0.04, -0.43999999999999995)
+mesh = SubResource("CoveredBoxEnd0Mesh")
+cast_shadow = 1
+
+[node name="CoveredBoxEnd0Collision" type="CollisionShape3D" parent="CoveredBox"]
+position = Vector3(0, -0.04, -0.43999999999999995)
+shape = SubResource("CoveredBoxEnd0Shape")
+
+[node name="CoveredBoxSide1Mesh" type="MeshInstance3D" parent="CoveredBox"]
+position = Vector3(0.43999999999999995, -0.04, 0)
+mesh = SubResource("CoveredBoxSide1Mesh")
+cast_shadow = 1
+
+[node name="CoveredBoxSide1Collision" type="CollisionShape3D" parent="CoveredBox"]
+position = Vector3(0.43999999999999995, -0.04, 0)
+shape = SubResource("CoveredBoxSide1Shape")
+
+[node name="CoveredBoxEnd1Mesh" type="MeshInstance3D" parent="CoveredBox"]
+position = Vector3(0, -0.04, 0.43999999999999995)
+mesh = SubResource("CoveredBoxEnd1Mesh")
+cast_shadow = 1
+
+[node name="CoveredBoxEnd1Collision" type="CollisionShape3D" parent="CoveredBox"]
+position = Vector3(0, -0.04, 0.43999999999999995)
+shape = SubResource("CoveredBoxEnd1Shape")
+
+[node name="FloorTray" type="RigidBody3D" parent="." groups=["grabbable"]]
+position = Vector3(-0.8, 0.15, 1.5)
+collision_layer = 4
+collision_mask = 7
+mass = 1.8
+physics_material_override = SubResource("PropPhysics")
+continuous_cd = true
+linear_damp = 0.15
+angular_damp = 0.4
+
+
+[node name="FloorTrayLidMesh" type="MeshInstance3D" parent="FloorTray"]
+position = Vector3(0, 0.10999999999999999, 0)
+mesh = SubResource("FloorTrayLidMesh")
+cast_shadow = 1
+
+[node name="FloorTrayLidCollision" type="CollisionShape3D" parent="FloorTray"]
+position = Vector3(0, 0.10999999999999999, 0)
+shape = SubResource("FloorTrayLidShape")
+
+[node name="FloorTraySide0Mesh" type="MeshInstance3D" parent="FloorTray"]
+position = Vector3(-0.365, -0.04, 0)
+mesh = SubResource("FloorTraySide0Mesh")
+cast_shadow = 1
+
+[node name="FloorTraySide0Collision" type="CollisionShape3D" parent="FloorTray"]
+position = Vector3(-0.365, -0.04, 0)
+shape = SubResource("FloorTraySide0Shape")
+
+[node name="FloorTrayEnd0Mesh" type="MeshInstance3D" parent="FloorTray"]
+position = Vector3(0, -0.04, -0.365)
+mesh = SubResource("FloorTrayEnd0Mesh")
+cast_shadow = 1
+
+[node name="FloorTrayEnd0Collision" type="CollisionShape3D" parent="FloorTray"]
+position = Vector3(0, -0.04, -0.365)
+shape = SubResource("FloorTrayEnd0Shape")
+
+[node name="FloorTraySide1Mesh" type="MeshInstance3D" parent="FloorTray"]
+position = Vector3(0.365, -0.04, 0)
+mesh = SubResource("FloorTraySide1Mesh")
+cast_shadow = 1
+
+[node name="FloorTraySide1Collision" type="CollisionShape3D" parent="FloorTray"]
+position = Vector3(0.365, -0.04, 0)
+shape = SubResource("FloorTraySide1Shape")
+
+[node name="FloorTrayEnd1Mesh" type="MeshInstance3D" parent="FloorTray"]
+position = Vector3(0, -0.04, 0.365)
+mesh = SubResource("FloorTrayEnd1Mesh")
+cast_shadow = 1
+
+[node name="FloorTrayEnd1Collision" type="CollisionShape3D" parent="FloorTray"]
+position = Vector3(0, -0.04, 0.365)
+shape = SubResource("FloorTrayEnd1Shape")
+
+[node name="DeskCover" type="RigidBody3D" parent="." groups=["grabbable"]]
+position = Vector3(-4.5, 1.5, -3.6)
+collision_layer = 4
+collision_mask = 7
+mass = 1.8
+physics_material_override = SubResource("PropPhysics")
+continuous_cd = true
+linear_damp = 0.15
+angular_damp = 0.4
+
+
+[node name="DeskCoverLidMesh" type="MeshInstance3D" parent="DeskCover"]
+position = Vector3(0, 0.21, 0)
+mesh = SubResource("DeskCoverLidMesh")
+cast_shadow = 1
+
+[node name="DeskCoverLidCollision" type="CollisionShape3D" parent="DeskCover"]
+position = Vector3(0, 0.21, 0)
+shape = SubResource("DeskCoverLidShape")
+
+[node name="DeskCoverSide0Mesh" type="MeshInstance3D" parent="DeskCover"]
+position = Vector3(-0.41500000000000004, -0.04, 0)
+mesh = SubResource("DeskCoverSide0Mesh")
+cast_shadow = 1
+
+[node name="DeskCoverSide0Collision" type="CollisionShape3D" parent="DeskCover"]
+position = Vector3(-0.41500000000000004, -0.04, 0)
+shape = SubResource("DeskCoverSide0Shape")
+
+[node name="DeskCoverEnd0Mesh" type="MeshInstance3D" parent="DeskCover"]
+position = Vector3(0, -0.04, -0.365)
+mesh = SubResource("DeskCoverEnd0Mesh")
+cast_shadow = 1
+
+[node name="DeskCoverEnd0Collision" type="CollisionShape3D" parent="DeskCover"]
+position = Vector3(0, -0.04, -0.365)
+shape = SubResource("DeskCoverEnd0Shape")
+
+[node name="DeskCoverSide1Mesh" type="MeshInstance3D" parent="DeskCover"]
+position = Vector3(0.41500000000000004, -0.04, 0)
+mesh = SubResource("DeskCoverSide1Mesh")
+cast_shadow = 1
+
+[node name="DeskCoverSide1Collision" type="CollisionShape3D" parent="DeskCover"]
+position = Vector3(0.41500000000000004, -0.04, 0)
+shape = SubResource("DeskCoverSide1Shape")
+
+[node name="DeskCoverEnd1Mesh" type="MeshInstance3D" parent="DeskCover"]
+position = Vector3(0, -0.04, 0.365)
+mesh = SubResource("DeskCoverEnd1Mesh")
+cast_shadow = 1
+
+[node name="DeskCoverEnd1Collision" type="CollisionShape3D" parent="DeskCover"]
+position = Vector3(0, -0.04, 0.365)
+shape = SubResource("DeskCoverEnd1Shape")
+
+[node name="ClutterScreen" type="RigidBody3D" parent="." groups=["grabbable"]]
+position = Vector3(5.6, 0.65, -0.8)
+collision_layer = 4
+collision_mask = 7
+mass = 2.5
+physics_material_override = SubResource("PropPhysics")
+continuous_cd = true
+linear_damp = 0.15
+angular_damp = 0.4
+
+
+[node name="ClutterScreenMesh" type="MeshInstance3D" parent="ClutterScreen"]
+position = Vector3(0, 0, 0)
+mesh = SubResource("ClutterScreenMesh")
+cast_shadow = 1
+
+[node name="ClutterScreenCollision" type="CollisionShape3D" parent="ClutterScreen"]
+position = Vector3(0, 0, 0)
+shape = SubResource("ClutterScreenShape")
+
+[node name="WardrobeStep" type="RigidBody3D" parent="." groups=["grabbable"]]
+position = Vector3(4.5, 0.4, -3.3)
+collision_layer = 4
+collision_mask = 7
+mass = 5
+physics_material_override = SubResource("PropPhysics")
+continuous_cd = true
+linear_damp = 0.15
+angular_damp = 0.4
+
+
+[node name="WardrobeStepMesh" type="MeshInstance3D" parent="WardrobeStep"]
+position = Vector3(0, 0, 0)
+mesh = SubResource("WardrobeStepMesh")
+cast_shadow = 1
+
+[node name="WardrobeStepCollision" type="CollisionShape3D" parent="WardrobeStep"]
+position = Vector3(0, 0, 0)
+shape = SubResource("WardrobeStepShape")
+
+[node name="ShelfStep" type="RigidBody3D" parent="." groups=["grabbable"]]
+position = Vector3(0.2, 0.5, -4.55)
+collision_layer = 4
+collision_mask = 7
+mass = 6
+physics_material_override = SubResource("PropPhysics")
+continuous_cd = true
+linear_damp = 0.15
+angular_damp = 0.4
+
+
+[node name="ShelfStepMesh" type="MeshInstance3D" parent="ShelfStep"]
+position = Vector3(0, 0, 0)
+mesh = SubResource("ShelfStepMesh")
+cast_shadow = 1
+
+[node name="ShelfStepCollision" type="CollisionShape3D" parent="ShelfStep"]
+position = Vector3(0, 0, 0)
+shape = SubResource("ShelfStepShape")
+
+[node name="DeskStep" type="RigidBody3D" parent="." groups=["grabbable"]]
+position = Vector3(-3.8, 0.35, -1.55)
+collision_layer = 4
+collision_mask = 7
+mass = 4
+physics_material_override = SubResource("PropPhysics")
+continuous_cd = true
+linear_damp = 0.15
+angular_damp = 0.4
+
+
+[node name="DeskStepMesh" type="MeshInstance3D" parent="DeskStep"]
+position = Vector3(0, 0, 0)
+mesh = SubResource("DeskStepMesh")
+cast_shadow = 1
+
+[node name="DeskStepCollision" type="CollisionShape3D" parent="DeskStep"]
+position = Vector3(0, 0, 0)
+shape = SubResource("DeskStepShape")
+
+[node name="SpareBox" type="RigidBody3D" parent="." groups=["grabbable"]]
+position = Vector3(2.3, 0.325, -1.8)
+collision_layer = 4
+collision_mask = 7
+mass = 4
+physics_material_override = SubResource("PropPhysics")
+continuous_cd = true
+linear_damp = 0.15
+angular_damp = 0.4
+
+
+[node name="SpareBoxMesh" type="MeshInstance3D" parent="SpareBox"]
+position = Vector3(0, 0, 0)
+mesh = SubResource("SpareBoxMesh")
+cast_shadow = 1
+
+[node name="SpareBoxCollision" type="CollisionShape3D" parent="SpareBox"]
+position = Vector3(0, 0, 0)
+shape = SubResource("SpareBoxShape")
+
+[node name="SmallStackBox" type="RigidBody3D" parent="." groups=["grabbable"]]
+position = Vector3(2.3, 0.9, -1.8)
+collision_layer = 4
+collision_mask = 7
+mass = 2
+physics_material_override = SubResource("PropPhysics")
+continuous_cd = true
+linear_damp = 0.15
+angular_damp = 0.4
+
+
+[node name="SmallStackBoxMesh" type="MeshInstance3D" parent="SmallStackBox"]
+position = Vector3(0, 0, 0)
+mesh = SubResource("SmallStackBoxMesh")
+cast_shadow = 1
+
+[node name="SmallStackBoxCollision" type="CollisionShape3D" parent="SmallStackBox"]
+position = Vector3(0, 0, 0)
+shape = SubResource("SmallStackBoxShape")
+
+[node name="LowStool" type="RigidBody3D" parent="." groups=["grabbable"]]
+position = Vector3(5.8, 0.3, -2.7)
+collision_layer = 4
+collision_mask = 7
+mass = 4
+physics_material_override = SubResource("PropPhysics")
+continuous_cd = true
+linear_damp = 0.15
+angular_damp = 0.4
+
+
+[node name="LowStoolSeatMesh" type="MeshInstance3D" parent="LowStool"]
+position = Vector3(0, 0.24, 0)
+mesh = SubResource("LowStoolSeatMesh")
+cast_shadow = 1
+
+[node name="LowStoolSeatCollision" type="CollisionShape3D" parent="LowStool"]
+position = Vector3(0, 0.24, 0)
+shape = SubResource("LowStoolSeatShape")
+
+[node name="LowStoolFoot0Mesh" type="MeshInstance3D" parent="LowStool"]
+position = Vector3(-0.37, -0.06, -0.37)
+mesh = SubResource("LowStoolFoot0Mesh")
+cast_shadow = 1
+
+[node name="LowStoolFoot0Collision" type="CollisionShape3D" parent="LowStool"]
+position = Vector3(-0.37, -0.06, -0.37)
+shape = SubResource("LowStoolFoot0Shape")
+
+[node name="LowStoolFoot1Mesh" type="MeshInstance3D" parent="LowStool"]
+position = Vector3(0.37, -0.06, -0.37)
+mesh = SubResource("LowStoolFoot1Mesh")
+cast_shadow = 1
+
+[node name="LowStoolFoot1Collision" type="CollisionShape3D" parent="LowStool"]
+position = Vector3(0.37, -0.06, -0.37)
+shape = SubResource("LowStoolFoot1Shape")
+
+[node name="LowStoolFoot2Mesh" type="MeshInstance3D" parent="LowStool"]
+position = Vector3(-0.37, -0.06, 0.37)
+mesh = SubResource("LowStoolFoot2Mesh")
+cast_shadow = 1
+
+[node name="LowStoolFoot2Collision" type="CollisionShape3D" parent="LowStool"]
+position = Vector3(-0.37, -0.06, 0.37)
+shape = SubResource("LowStoolFoot2Shape")
+
+[node name="LowStoolFoot3Mesh" type="MeshInstance3D" parent="LowStool"]
+position = Vector3(0.37, -0.06, 0.37)
+mesh = SubResource("LowStoolFoot3Mesh")
+cast_shadow = 1
+
+[node name="LowStoolFoot3Collision" type="CollisionShape3D" parent="LowStool"]
+position = Vector3(0.37, -0.06, 0.37)
+shape = SubResource("LowStoolFoot3Shape")
+
+[node name="TallStool" type="RigidBody3D" parent="." groups=["grabbable"]]
+position = Vector3(-1, 0.425, -2.4)
+collision_layer = 4
+collision_mask = 7
+mass = 4
+physics_material_override = SubResource("PropPhysics")
+continuous_cd = true
+linear_damp = 0.15
+angular_damp = 0.4
+
+
+[node name="TallStoolSeatMesh" type="MeshInstance3D" parent="TallStool"]
+position = Vector3(0, 0.365, 0)
+mesh = SubResource("TallStoolSeatMesh")
+cast_shadow = 1
+
+[node name="TallStoolSeatCollision" type="CollisionShape3D" parent="TallStool"]
+position = Vector3(0, 0.365, 0)
+shape = SubResource("TallStoolSeatShape")
+
+[node name="TallStoolFoot0Mesh" type="MeshInstance3D" parent="TallStool"]
+position = Vector3(-0.37, -0.06, -0.37)
+mesh = SubResource("TallStoolFoot0Mesh")
+cast_shadow = 1
+
+[node name="TallStoolFoot0Collision" type="CollisionShape3D" parent="TallStool"]
+position = Vector3(-0.37, -0.06, -0.37)
+shape = SubResource("TallStoolFoot0Shape")
+
+[node name="TallStoolFoot1Mesh" type="MeshInstance3D" parent="TallStool"]
+position = Vector3(0.37, -0.06, -0.37)
+mesh = SubResource("TallStoolFoot1Mesh")
+cast_shadow = 1
+
+[node name="TallStoolFoot1Collision" type="CollisionShape3D" parent="TallStool"]
+position = Vector3(0.37, -0.06, -0.37)
+shape = SubResource("TallStoolFoot1Shape")
+
+[node name="TallStoolFoot2Mesh" type="MeshInstance3D" parent="TallStool"]
+position = Vector3(-0.37, -0.06, 0.37)
+mesh = SubResource("TallStoolFoot2Mesh")
+cast_shadow = 1
+
+[node name="TallStoolFoot2Collision" type="CollisionShape3D" parent="TallStool"]
+position = Vector3(-0.37, -0.06, 0.37)
+shape = SubResource("TallStoolFoot2Shape")
+
+[node name="TallStoolFoot3Mesh" type="MeshInstance3D" parent="TallStool"]
+position = Vector3(0.37, -0.06, 0.37)
+mesh = SubResource("TallStoolFoot3Mesh")
+cast_shadow = 1
+
+[node name="TallStoolFoot3Collision" type="CollisionShape3D" parent="TallStool"]
+position = Vector3(0.37, -0.06, 0.37)
+shape = SubResource("TallStoolFoot3Shape")
+
+[node name="Sandbox" type="Node3D" parent="."]
+
+[node name="MediumBox" type="RigidBody3D" parent="Sandbox" groups=["grabbable"]]
+position = Vector3(-0.9, 0.4, -0.6)
+collision_layer = 4
+collision_mask = 7
+mass = 4
+physics_material_override = SubResource("PropPhysics")
+continuous_cd = true
+linear_damp = 0.15
+angular_damp = 0.4
+
+
+[node name="MediumBoxMesh" type="MeshInstance3D" parent="Sandbox/MediumBox"]
+position = Vector3(0, 0, 0)
+mesh = SubResource("MediumBoxMesh")
+cast_shadow = 1
+
+[node name="MediumBoxCollision" type="CollisionShape3D" parent="Sandbox/MediumBox"]
+position = Vector3(0, 0, 0)
+shape = SubResource("MediumBoxShape")
+
+[node name="LooseBook" type="RigidBody3D" parent="." groups=["grabbable"]]
+position = Vector3(-3, 1.3, -3.6)
+collision_layer = 4
+collision_mask = 7
+mass = 0.4
+physics_material_override = SubResource("PropPhysics")
+continuous_cd = true
+linear_damp = 0.15
+angular_damp = 0.4
+
+
+[node name="LooseBookMesh" type="MeshInstance3D" parent="LooseBook"]
+position = Vector3(0, 0, 0)
+mesh = SubResource("LooseBookMesh")
+cast_shadow = 1
+
+[node name="LooseBookCollision" type="CollisionShape3D" parent="LooseBook"]
+position = Vector3(0, 0, 0)
+shape = SubResource("LooseBookShape")
+
+[node name="BedsideClutter" type="RigidBody3D" parent="." groups=["grabbable"]]
+position = Vector3(-2.25, 0.94, 2.05)
+collision_layer = 4
+collision_mask = 7
+mass = 0.3
+physics_material_override = SubResource("PropPhysics")
+continuous_cd = true
+linear_damp = 0.15
+angular_damp = 0.4
+
+
+[node name="BedsideClutterMesh" type="MeshInstance3D" parent="BedsideClutter"]
+position = Vector3(0, 0, 0)
+mesh = SubResource("BedsideClutterMesh")
+cast_shadow = 1
+
+[node name="BedsideClutterCollision" type="CollisionShape3D" parent="BedsideClutter"]
+position = Vector3(0, 0, 0)
+shape = SubResource("BedsideClutterShape")
+
+[node name="Player" parent="Sandbox" instance=ExtResource("2")]
+position = Vector3(0, 0.02, 5.4)
+
+[node name="DebugOverlay" parent="Sandbox" node_paths=PackedStringArray("grabber") instance=ExtResource("4")]
+grabber = NodePath("../Player/Grabber")
+
+[node name="SearchSpots" type="Node3D" parent="."]
+
+[node name="BedsideSurface" type="Marker3D" parent="SearchSpots"]
+position = Vector3(-1.85, 0.83, 2.35)
+script = ExtResource("3")
+search_category = 0
+
+[node name="DeskSurface" type="Marker3D" parent="SearchSpots"]
+position = Vector3(-3, 1.31, -3)
+script = ExtResource("3")
+search_category = 0
+
+[node name="ShelfSurface" type="Marker3D" parent="SearchSpots"]
+position = Vector3(0.2, 1.14, -5.75)
+script = ExtResource("3")
+search_category = 0
+
+[node name="UnderCoveredBox" type="Marker3D" parent="SearchSpots"]
+position = Vector3(-4.3, 0.06, 4.7)
+script = ExtResource("3")
+search_category = 1
+
+[node name="UnderFloorTray" type="Marker3D" parent="SearchSpots"]
+position = Vector3(-0.8, 0.06, 1.5)
+script = ExtResource("3")
+search_category = 1
+
+[node name="UnderDeskCover" type="Marker3D" parent="SearchSpots"]
+position = Vector3(-4.5, 1.31, -3.6)
+script = ExtResource("3")
+search_category = 1
+
+[node name="BehindClutterScreen" type="Marker3D" parent="SearchSpots"]
+position = Vector3(5.6, 0.06, -1.2)
+script = ExtResource("3")
+search_category = 1
+
+[node name="UnderBedDeep" type="Marker3D" parent="SearchSpots"]
+position = Vector3(-4.4, 0.06, 1.1)
+script = ExtResource("3")
+search_category = 2
+
+[node name="UnderCouchDeep" type="Marker3D" parent="SearchSpots"]
+position = Vector3(4.5, 0.06, 2.05)
+script = ExtResource("3")
+search_category = 2
+
+[node name="UnderDeskRear" type="Marker3D" parent="SearchSpots"]
+position = Vector3(-4.6, 0.06, -4.3)
+script = ExtResource("3")
+search_category = 2
+
+[node name="UnderBedSide" type="Marker3D" parent="SearchSpots"]
+position = Vector3(-5.5, 0.06, 0.8)
+script = ExtResource("3")
+search_category = 2
+
+[node name="BehindWardrobe" type="Marker3D" parent="SearchSpots"]
+position = Vector3(5.3, 0.06, -6.3)
+script = ExtResource("3")
+search_category = 3
+
+[node name="BehindHeadboard" type="Marker3D" parent="SearchSpots"]
+position = Vector3(-4.7, 0.06, -0.45)
+script = ExtResource("3")
+search_category = 3
+
+[node name="BehindCouch" type="Marker3D" parent="SearchSpots"]
+position = Vector3(5.7, 0.06, 1.15)
+script = ExtResource("3")
+search_category = 3
+
+[node name="WardrobeTop" type="Marker3D" parent="SearchSpots"]
+position = Vector3(4.5, 3.16, -4.75)
+script = ExtResource("3")
+search_category = 4
+
+[node name="ShelfTop" type="Marker3D" parent="SearchSpots"]
+position = Vector3(0.2, 3.46, -5.9)
+script = ExtResource("3")
+search_category = 4
+
+[node name="HutchTop" type="Marker3D" parent="SearchSpots"]
+position = Vector3(-3.8, 3.31, -4.35)
+script = ExtResource("3")
+search_category = 4
+

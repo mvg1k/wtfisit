@@ -137,6 +137,10 @@ func _test_contact() -> void:
 	barrier.add_child(collision)
 	_room.add_child(barrier)
 	barrier.global_position = body.global_position + Vector3(0.48, 0, 0)
+	var charge_event := InputEventMouseButton.new()
+	charge_event.button_index = MOUSE_BUTTON_LEFT
+	charge_event.pressed = true
+	root.push_input(charge_event, true)
 	Input.action_press("rotate_held")
 	for index in 60:
 		_motion(Vector2(40, 10))
@@ -145,6 +149,8 @@ func _test_contact() -> void:
 	Input.action_release("rotate_held")
 	await _steps(150)
 	_check(_grabber.held_body == body and body.linear_velocity.length() < 0.3, "Rotating contact settles while held")
+	_check(_grabber.is_charging_throw and is_equal_approx(_grabber.throw_charge, 1.0),
+		"Furniture contact during charge stays held and clamps charge")
 	var bounds := AABB(Vector3.ONE * -0.3, Vector3.ONE * 0.6)
 	var furthest_x: float = -INF
 	for corner in 8:
@@ -153,6 +159,8 @@ func _test_contact() -> void:
 	_check(_player.velocity.length() < 0.1 and absf(_player.position.y) < 0.05,
 		"Held-object contact does not launch player")
 	_grabber.release()
+	charge_event.pressed = false
+	root.push_input(charge_event, true)
 	barrier.queue_free()
 	body.queue_free()
 	await _steps(2)
