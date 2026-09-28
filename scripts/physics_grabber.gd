@@ -6,6 +6,16 @@ extends Node3D
 @export var player_shape: CollisionShape3D
 @export var reach: float = 3.2
 @export var hold_distance: float = 2.0
+@export var min_hold_distance: float = 1.1
+@export var max_hold_distance: float = 3.0
+@export var distance_step: float = 0.15
+@export var rotation_sensitivity: float = 0.006
+@export var rotation_response: float = 14.0
+@export var angular_response: float = 18.0
+@export var max_angular_speed: float = 6.0
+@export var max_angular_acceleration: float = 60.0
+@export var max_torque: float = 40.0
+@export var max_rotation_lag: float = 0.8
 @export var spring_strength: float = 45.0
 @export var spring_damping: float = 12.0
 @export var max_acceleration: float = 50.0
@@ -15,6 +25,10 @@ extends Node3D
 @export var max_throw_speed_change: float = 12.0
 
 var held_body: RigidBody3D
+var current_hold_distance: float = 2.0
+var _minimum_distance: float = 1.1
+var _held_radius: float = 0.0
+var _rotation_target := Quaternion.IDENTITY
 var _saved_angular_damp: float = 0.0
 var _obstructed_time: float = 0.0
 var _interact_requested: bool = false
@@ -26,6 +40,21 @@ var _gravity: float = float(ProjectSettings.get_setting("physics/3d/default_grav
 func _unhandled_input(event: InputEvent) -> void:
 	if not player.mouse_captured:
 		return
+	if is_instance_valid(held_body):
+		if event is InputEventMouseMotion and Input.is_action_pressed("rotate_held"):
+			var yaw := Quaternion(camera.global_basis.y, event.relative.x * rotation_sensitivity)
+			var pitch := Quaternion(camera.global_basis.x, event.relative.y * rotation_sensitivity)
+			_rotation_target = (yaw * pitch * _rotation_target).normalized()
+			# This child handles motion before the player's camera-look handler.
+			get_viewport().set_input_as_handled()
+			return
+		if event.is_action_pressed("hold_farther") or event.is_action_pressed("hold_closer"):
+			var direction := 1.0 if event.is_action_pressed("hold_farther") else -1.0
+			var factor: float = event.factor if event is InputEventMouseButton else 1.0
+			current_hold_distance = clampf(current_hold_distance + direction * distance_step * factor,
+				_minimum_distance, max_hold_distance)
+			get_viewport().set_input_as_handled()
+			return
 	if event.is_action_pressed("interact"):
 		_interact_requested = true
 	elif event.is_action_pressed("throw_object"):
@@ -59,6 +88,13 @@ func try_pick_up() -> void:
 	var body := hit.get("collider") as RigidBody3D
 	if body == null or body.freeze or not body.is_in_group("grabbable"):
 		return
+	_held_radius = _body_radius(body)
+	var capsule := player_shape.shape as CapsuleShape3D
+	_minimum_distance = maxf(min_hold_distance, _held_radius + capsule.radius + 0.1)
+	if _minimum_distance > max_hold_distance:
+		return
+	current_hold_distance = clampf(hold_distance, _minimum_distance, max_hold_distance)
+	_rotation_target = body.global_basis.get_rotation_quaternion()
 	held_body = body
 	_released_bodies.erase(body)
 	_saved_angular_damp = body.angular_damp
@@ -85,11 +121,19 @@ func release(throw_held: bool = false) -> void:
 
 func _update_hold(delta: float) -> void:
 	var forward := -camera.global_basis.z
-	var target := camera.global_position + forward * hold_distance
-	var wall := _ray(target, held_body)
+	var target_distance := current_hold_distance
+	var wall := _ray(camera.global_position + forward * (target_distance + _held_radius), held_body)
 	if not wall.is_empty():
 		var distance := camera.global_position.distance_to(wall["position"])
-		target = camera.global_position + forward * maxf(0.35, distance - 0.45)
+		target_distance = minf(target_distance, distance - _held_radius - 0.05)
+	var target := camera.global_position + forward * target_distance
+	# If there is no safe space, let go instead of retracting through the player.
+	if target_distance < _minimum_distance or not _clear_of_player(target):
+		release()
+		return
+	if forward.dot(held_body.global_position - camera.global_position) < 0.15:
+		release()
+		return
 	var offset := target - held_body.global_position
 	var blocked := not _ray(held_body.global_position, held_body).is_empty()
 	_obstructed_time = _obstructed_time + delta if blocked else 0.0
@@ -101,6 +145,54 @@ func _update_hold(delta: float) -> void:
 	force_acceleration += Vector3.UP * _gravity * held_body.gravity_scale
 	var force := (force_acceleration.limit_length(max_acceleration) * held_body.mass).limit_length(max_force)
 	held_body.apply_central_force(force)
+	_update_rotation()
+
+
+func _update_rotation() -> void:
+	if held_body.lock_rotation:
+		return
+	var current := held_body.global_basis.get_rotation_quaternion()
+	var error := (_rotation_target * current.inverse()).normalized()
+	if error.w < 0.0:
+		error = -error
+	var angle := error.get_angle()
+	# Discard excess lag against obstacles instead of storing a large rotation.
+	if angle > max_rotation_lag:
+		_rotation_target = current.slerp(_rotation_target, max_rotation_lag / angle).normalized()
+		angle = max_rotation_lag
+	var desired_velocity := Vector3.ZERO
+	if angle > 0.001:
+		desired_velocity = error.get_axis() * minf(angle * rotation_response, max_angular_speed)
+	var acceleration := ((desired_velocity - held_body.angular_velocity) * angular_response).limit_length(
+		max_angular_acceleration)
+	var inverse_inertia := held_body.get_inverse_inertia_tensor()
+	if absf(inverse_inertia.determinant()) > 0.000001:
+		var torque := (inverse_inertia.inverse() * acceleration).limit_length(max_torque)
+		held_body.apply_torque(torque)
+
+
+func _body_radius(body: RigidBody3D) -> float:
+	# Cache a conservative rotation-independent bound only when picking up.
+	var radius: float = 0.0
+	for owner_id: int in body.get_shape_owners():
+		if body.is_shape_owner_disabled(owner_id):
+			continue
+		var local_transform := body.shape_owner_get_transform(owner_id)
+		for index in body.shape_owner_get_shape_count(owner_id):
+			var shape := body.shape_owner_get_shape(owner_id, index)
+			var bounds := shape.get_debug_mesh().get_aabb()
+			for corner in 8:
+				radius = maxf(radius, (local_transform * bounds.get_endpoint(corner)).length())
+	return radius
+
+
+func _clear_of_player(target: Vector3) -> bool:
+	var capsule := player_shape.shape as CapsuleShape3D
+	var half_segment := capsule.height * 0.5 - capsule.radius
+	var top := player_shape.to_global(Vector3.UP * half_segment)
+	var bottom := player_shape.to_global(Vector3.DOWN * half_segment)
+	var closest := Geometry3D.get_closest_point_to_segment(target, top, bottom)
+	return target.distance_to(closest) >= _held_radius + capsule.radius + 0.08
 
 
 func _ray(end: Vector3, ignored: RigidBody3D = null) -> Dictionary:

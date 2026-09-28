@@ -32,4 +32,5 @@ func _update_stats() -> void:
 	var detail := "Held: no"
 	if is_instance_valid(body):
 		detail = "Held: yes\n%s | %.2f kg" % [body.name, body.mass]
+		detail += "\nHold distance: %.2f m" % grabber.current_hold_distance
 	_stats.text = "FPS: %d\n%s" % [Engine.get_frames_per_second(), detail]

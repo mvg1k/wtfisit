@@ -12,7 +12,7 @@ and throwing household clutter provides play and stress relief.
 - Build small playable increments. No giant GameManager or speculative systems.
 - Primitive geometry, no external assets, plugins, or dependencies for now.
 
-## Implemented milestone: first physics playground
+## Implemented milestone: physics playground and held-object manipulation
 
 - Typed GDScript, Godot 4.x (4.3+ APIs), Windows/desktop first.
 - Compatibility renderer, Godot Physics, 60 Hz physics. Validated with the locally
@@ -22,9 +22,19 @@ and throwing household clutter provides play and stress relief.
   of different shapes and masses (0.25–12 kg).
 - Accelerated first-person movement, jump, mouse look, center-ray pickup,
   force-based hold, drop, mass-sensitive throw, optional debug statistics.
+- Hold R + move the mouse to rotate a held prop around camera-relative axes;
+  mouse look resumes on R release. Wheel up/down moves it farther/closer.
+  Each pickup starts at 2 m; distance is bounded to 1.1-3 m, with a larger
+  minimum for large props. Debug statistics include the selected distance.
 - Held bodies stay dynamic. Capped spring forces, angular damping, continuous
   collision detection, obstruction release, and delayed player-collision
   restoration limit instability. No transform-following or frozen held props.
+- A capped, inertia-aware torque controller maintains the chosen orientation
+  while held. Limited angular lag avoids building up rotation against furniture.
+  Drop/throw preserve momentum and restore the body's original damping.
+- Prop bounds are cached at pickup for conservative clearance. Walls may shorten
+  the actual distance; insufficient space or a target inside the player causes
+  release instead of pulling through the player.
 - Camera release/focus loss drops the held object. Physics continues running.
 
 ## Structure and conventions
@@ -32,10 +42,12 @@ and throwing household clutter provides play and stress relief.
 - `scenes/test_room.tscn`: editable room and prop instances; main scene.
 - `scenes/player.tscn`, `scripts/player_controller.gd`: movement and mouse capture.
 - `scripts/physics_grabber.gd`: interaction; exported references and tuning.
+  As a child of Player, it consumes rotation mouse events before camera look.
+  Movement and the existing linear spring/throw tuning remain unchanged.
 - `scenes/props/physics_prop.tscn`: reusable ordinary RigidBody3D with primitive
   mesh/collider, grabbable group, CCD, and sleeping enabled. No prop script.
 - `scenes/debug_overlay.tscn`, `scripts/debug_overlay.gd`: crosshair, controls,
-  optional FPS/held-body statistics refreshed at 5 Hz.
+  optional FPS/held-body/distance statistics refreshed at 5 Hz.
 - Collision layers: 1 World, 2 Player, 3 Props. Picking checks World + Props so
   walls block interaction. Eligible props belong to `grabbable`.
 - Use unit-scale physics roots; resize shapes/meshes. Keep generated `.gd.uid`
@@ -52,7 +64,7 @@ prototype is not a destruction-performance benchmark.
 
 ## Future systems — NOT IMPLEMENTED
 
-Search targets/random hiding spots, containers, hints, inspection/rotation,
+Search targets/random hiding spots, containers, hints, dedicated inspection UI,
 destruction/material responses, tools, fire, liquids, electricity, inventory,
 economy/rewards, challenges, unlocks/progression, procedural rooms, saving,
 menus, easter eggs, and polished art. No work on these is part of this milestone.
