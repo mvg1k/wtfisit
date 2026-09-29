@@ -5,9 +5,9 @@ const ROOM: PackedScene = preload("res://scenes/search_room.tscn")
 const KEYS: PackedScene = preload("res://scenes/props/keys.tscn")
 const HUD: Script = preload("res://scripts/search_hud.gd")
 const APPROACHES: Dictionary = {
-	"BedsideSurface": Vector3(-1.85, 0.02, 3.7),
-	"DeskSurface": Vector3(-2.1, 0.02, -1.9),
-	"ShelfSurface": Vector3(1.8, 0.02, -4.1),
+	"BedsideSurface": Vector3(-1.0, 0.02, 1.5),
+	"DeskSurface": Vector3(-4.5, 0.02, -5.5),
+	"ShelfSurface": Vector3(0.95, 0.02, -4.8),
 	"UnderCoveredBox": Vector3(-4.3, 0.02, 5.9),
 	"UnderFloorTray": Vector3(-0.8, 0.02, 3),
 	"UnderDeskCover": Vector3(-4.5, 0.02, -2),
@@ -33,6 +33,7 @@ func _initialize() -> void:
 
 
 func _run() -> void:
+	await _test_visibility()
 	await _test_authored_spots()
 	_game = GAME.instantiate() as SearchRun
 	root.add_child(_game)
@@ -106,6 +107,9 @@ func _run() -> void:
 	_check(not extra_targets, "Repeated restarts keep exactly one target")
 	_key(KEY_F4)
 	_check(_game.debug_search_visible == OS.is_debug_build(), "Search diagnostics require debug build and explicit toggle")
+	_check(_game.get_node("SearchHUD/SearchDebug").text.contains("Action:")
+		and _game.get_node("SearchHUD/SearchDebug").text.contains("Spawn rejected:"),
+		"Opt-in diagnostics explain action and spawn rejections")
 	var before_debug_restart := _game.room
 	_key(KEY_F7)
 	await _wait_for_start()
@@ -124,17 +128,65 @@ func _run() -> void:
 	quit(0 if _failures == 0 else 1)
 
 
+func _test_visibility() -> void:
+	var room := ROOM.instantiate() as SearchRoom
+	root.add_child(room)
+	await _steps(3)
+	var item := KEYS.instantiate() as TargetItem
+	var spot := SearchSpot.new()
+	room.add_child(spot)
+	spot.position = Vector3(0, 1, 3)
+	_check(spot.clearly_visible_from_spawn(item, room.spawn_eye, room.spawn_frustum),
+		"Clear target in initial view is exposed")
+	room.grabber.player.rotation.y = PI
+	_check(spot.clearly_visible_from_spawn(item, room.spawn_eye, room.spawn_frustum),
+		"Spawn snapshot is independent of subsequent camera input")
+	spot.position.z = 6
+	_check(not spot.clearly_visible_from_spawn(item, room.spawn_eye, room.spawn_frustum),
+		"Target behind initial camera is not rejected")
+	spot.position.z = 3
+	var blocker := StaticBody3D.new()
+	var collision := CollisionShape3D.new()
+	var shape := BoxShape3D.new()
+	shape.size = Vector3(0.1, 0.5, 0.1)
+	collision.shape = shape
+	blocker.add_child(collision)
+	room.add_child(blocker)
+	blocker.position = Vector3(0.075, 1.31, 4.2)
+	await _steps(2)
+	var ray := PhysicsRayQueryParameters3D.create(room.spawn_eye, spot.global_position, 5)
+	_check(room.get_world_3d().direct_space_state.intersect_ray(ray).is_empty()
+		and not spot.clearly_visible_from_spawn(item, room.spawn_eye, room.spawn_frustum),
+		"Partial occlusion remains eligible even with a clear center ray")
+	shape.size.x = 0.6
+	for layer: int in [1, 4]:
+		blocker.collision_layer = layer
+		await _steps(2)
+		_check(not spot.clearly_visible_from_spawn(item, room.spawn_eye, room.spawn_frustum),
+			"World and prop collision layers both occlude: %d" % layer)
+	item.free()
+	room.queue_free()
+	await _steps(2)
+
+
 func _test_authored_spots() -> void:
 	var hidden_count: int = 0
 	for spot_name: String in APPROACHES:
 		var room := ROOM.instantiate() as SearchRoom
 		root.add_child(room)
-		await _steps(120)
+		await _steps(2)
 		var item := KEYS.instantiate() as TargetItem
+		if spot_name == "BedsideSurface":
+			_check(room.hidden_from_spawn(room.valid_spots(item), item).size() == 17,
+				"All seventeen spots eligible at run-start timing")
+		await _steps(120)
 		var spots := room.valid_spots(item)
-		_check(spots.size() == 17, "All seventeen authored spots are clear and compatible")
+		if spot_name == "BedsideSurface":
+			_check(spots.size() == 17, "All seventeen authored spots are clear and compatible")
 		var spot := room.spots_root.get_node(NodePath(spot_name)) as SearchSpot
 		_check(spot.can_place(item), "Clear spawn: " + spot_name)
+		_check(not spot.clearly_visible_from_spawn(item, room.spawn_eye, room.spawn_frustum),
+			"Authored spot remains sheltered after clutter settles: " + spot_name)
 		room.add_child(item)
 		item.global_transform = spot.global_transform
 		await _steps(120)
@@ -178,11 +230,11 @@ func _test_authored_spots() -> void:
 		room.grabber.release()
 		room.queue_free()
 		await _steps(2)
-	_check(hidden_count >= 6, "Most spots are occluded from the entrance")
+	_check(hidden_count == 17, "All seventeen target centers are occluded from the entrance")
 
 
 func _test_invalid_spots() -> void:
-	for mode: String in ["empty", "disabled", "wrong_category", "solid", "one"]:
+	for mode: String in ["empty", "disabled", "wrong_category", "solid", "one", "exposed", "mixed", "bad_action"]:
 		var fixture := ROOM.instantiate() as SearchRoom
 		for spot: SearchSpot in fixture.spots_root.get_children():
 			match mode:
@@ -196,18 +248,30 @@ func _test_invalid_spots() -> void:
 					spot.position = Vector3(0, -0.2, 0)
 				"one":
 					spot.enabled = spot.name == &"UnderBedDeep"
+				"exposed", "mixed":
+					spot.enabled = spot.name == &"BedsideSurface" or (mode == "mixed" and spot.name == &"UnderBedDeep")
+					if spot.name == &"BedsideSurface":
+						spot.position = Vector3(0, 0.06, 3)
+				"bad_action":
+					spot.set("intended_action", 99)
 		var packed := PackedScene.new()
 		_check(packed.pack(fixture) == OK, "Build spot fixture: " + mode)
 		fixture.free()
 		_game.room_scene = packed
 		await _game.start_run()
-		if mode == "one":
+		if mode in ["one", "mixed"]:
 			_check(_game.state == SearchRun.State.SEARCHING, "One valid spot starts normally")
+			if mode == "mixed":
+				_check(_game.current_spot.name == &"UnderBedDeep" and _game.spawn_visibility_rejected == 1
+					and _game.spawn_visibility_checked == 2, "Visible candidate rejected; safe alternative selected")
 			await _game.start_run()
 			_check(_game.state == SearchRun.State.SEARCHING, "One valid spot may repeat without failure")
 		else:
 			_check(_game.state == SearchRun.State.UNAVAILABLE and _game.target == null and _game.elapsed_seconds == 0,
 				"Graceful unavailable state: " + mode)
+			if mode == "exposed":
+				_check(_game.spawn_visibility_checked == 1 and _game.spawn_visibility_rejected == 1
+					and _game.error_message.contains("exposed"), "All-exposed pool terminates safely without reroll loop")
 			if mode == "solid":
 				_game.room_scene = ROOM
 				_key(KEY_ENTER)

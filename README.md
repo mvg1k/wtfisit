@@ -21,11 +21,12 @@ spot. Looking at the keys or picking up other props does not complete the run.
 | Hold R + mouse | Rotate held prop; temporarily suppress camera look |
 | Wheel up / down | Move held prop farther / closer |
 | Hold / release Left Mouse Button | Charge / throw held prop; tap for a gentle toss |
+| Right Mouse Button | Drop held prop; cancel an active/queued throw without adding impulse |
 | Escape | Release mouse and drop prop |
 | Left click with free cursor | Capture mouse |
 | Enter after completion | Search again; reset room, player and timer |
 | F3 | Toggle FPS / held name / mass / distance / stance stats; debug builds also show active throw charge |
-| F4 (debug builds only) | Show/hide search state, target and hiding spot |
+| F4 (debug builds only) | Show/hide search state, target, spot, category, action and spawn rejection counts |
 | F7 (search diagnostics visible, debug only) | Reset and reroll the search |
 
 Walk within 3.2 m of a prop to pick it up. Heavy props accelerate and throw less
@@ -45,6 +46,10 @@ props remain usable through a bounded mass response. Throws inherit half the
 player's velocity (up to 3 m/s), retain up to 4 m/s of existing prop motion,
 and cap launch speed at 26 m/s. Bounded, slightly varied tumble adds to existing
 spin, capped at 7 rad/s. Charge clears on drop, focus loss, Escape and restart.
+A thin ring around the crosshair fills while charging and pulses subtly at maximum.
+It disappears on throw or cancellation. RMB releases without throwing; releasing
+LMB afterward cannot launch the dropped prop. Exact charge percentages remain in
+debug-build F3 stats, which start hidden in the search room.
 
 Standing movement is 5.4 m/s (+20%). Crouch/prone remain 2.475/1.125 m/s;
 acceleration, braking and jump settings are unchanged.
@@ -71,8 +76,15 @@ hollow container. There is no dedicated inspection UI.
 
 Hiding locations are seventeen editable SearchSpot markers in `scenes/search_room.tscn`:
 3 surface, 4 covered/occluded, 4 low/under, 3 behind furniture, and 3 high.
-They use category metadata and initial collision checks, never random XYZ
-coordinates. Selection avoids the last two categories and three spots when possible.
+Each also has one primary intended action: VISUAL_SEARCH (6), CROUCH (1), PRONE (3),
+MOVE_PROP (4), or CLIMB (3). This describes the design intent, not a required input.
+They use authored coordinates and initial collision checks. A single pass rejects
+fully exposed targets inside the initial camera frustum using rays to collider
+centers and inset corners; World and Props provide occlusion. Partially occluded
+or off-screen placements stay eligible. An all-exposed pool becomes unavailable.
+Selection avoids the last two categories and three spots among survivors when possible.
+The three surface spots now need a view past existing clutter; the deep-bed and
+headboard spots avoid diagonal gaps visible from spawn, including after settling.
 The room contains a bed, couch, desk/hutch, shelving, wardrobe, bedside table,
 movable covers, boxes and stools. All three high spots have broad physical routes:
 box-to-jump at the wardrobe/shelf, and box-to-desktop-to-jump at the hutch.
@@ -113,15 +125,17 @@ obstacles, 12/26 m/s collision-fixture speeds, spin, settling, sleeping, close r
 deleted-body cleanup. Its optional `-- --native-ccd` negative control disables
 the added sweeps and reproduces tunneling/embedding failures.
 The charge test covers input press/release timing, clamping, mass/momentum/spin
-bounds, visible rotation, cancellation, stance changes and restart. Existing
+bounds, visible rotation, ring state/reset, RMB cancellation (including queued
+inputs), stance changes and restart. Search tests also cover action metadata,
+spawn visibility, partial occlusion and bounded all-exposed/mixed candidate pools. Existing
 manipulation checks also exercise furniture contact while charging.
 All tests exit nonzero on failed checks.
 
-Movement/charged-throw validation with Godot 4.7.2: **478 checks passed** across
-seven suites (35 physics, 44 manipulation, 106 search, 18 stance, 41 physical
-search, 184 collision/throw, 50 charge). Editor import and a 180-frame main-scene
-launch passed. All 60 impact fixtures passed, now including the 26 m/s cap.
-Charge feedback and visible rotation were inspected in rendered frames; this
+Core gameplay polish validation with Godot 4.7.2: **528 checks passed** across
+seven suites (35 physics, 44 manipulation, 124 search, 18 stance, 42 physical
+search, 184 collision/throw, 81 charge). Editor import and a 180-frame main-scene
+launch passed. All 60 impact fixtures passed, including the 26 m/s cap.
+Partial/full radial charge, cancellation and search diagnostics were inspected in rendered frames; this
 does not replace manual feel-testing. Prompt #4's rendered room/stance/search UI
 checks and the reproduced native-CCD failures remain the basis of the sweep fix.
 The native CCD limitation is consistent with its

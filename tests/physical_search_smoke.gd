@@ -180,11 +180,18 @@ func _face(destination: Vector3) -> void:
 func _test_categories() -> void:
 	await _setup(Vector3(0, 0.02, 5.4))
 	var counts := [0, 0, 0, 0, 0]
+	var actions := [0, 0, 0, 0, 0]
+	var valid_actions := true
 	var spots: Array[SearchSpot] = []
 	for spot: SearchSpot in _room.spots_root.get_children():
 		counts[spot.search_category] += 1
+		if SearchSpot.Action.values().has(spot.intended_action):
+			actions[spot.intended_action] += 1
+		else:
+			valid_actions = false
 		spots.append(spot)
 	_check(counts == [3, 4, 4, 3, 3], "Spot distribution is 3 surface, 4 covered, 4 low, 3 behind, 3 high")
+	_check(valid_actions and actions == [6, 1, 3, 4, 3], "Valid actions: 6 visual, 1 crouch, 3 prone, 4 move prop, 3 climb")
 	var run := SearchRun.new()
 	run._rng.seed = 94
 	var previous: Array[int] = []

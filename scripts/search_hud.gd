@@ -39,8 +39,10 @@ func _refresh() -> void:
 	if _debug.visible:
 		var spot_name := String(run.current_spot.name) if is_instance_valid(run.current_spot) else "-"
 		var category: String = SearchSpot.Category.keys()[run.current_spot.search_category] if is_instance_valid(run.current_spot) else "-"
-		_debug.text = "SEARCH DEBUG\nState: %s\nTarget: %s\nSpot: %s\nCategory: %s\nF4 hide | F7 new search" % [
-			SearchRun.State.keys()[run.state], run.target_name, spot_name, category]
+		var action: String = SearchSpot.Action.keys()[run.current_spot.intended_action] if is_instance_valid(run.current_spot) else "-"
+		_debug.text = "SEARCH DEBUG\nState: %s\nTarget: %s\nSpot: %s\nCategory: %s\nAction: %s\nSpawn rejected: %d / %d\nF4 hide | F7 new search" % [
+			SearchRun.State.keys()[run.state], run.target_name, spot_name, category, action,
+			run.spawn_visibility_rejected, run.spawn_visibility_checked]
 
 
 static func format_time(seconds: float) -> String:

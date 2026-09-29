@@ -7,6 +7,7 @@ var _elapsed: float = 0.0
 
 
 func _ready() -> void:
+	%ThrowChargeIndicator.grabber = grabber
 	_stats.visible = debug_visible
 	_update_stats()
 

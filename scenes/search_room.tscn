@@ -1587,7 +1587,8 @@ position = Vector3(0, 0, 0)
 shape = SubResource("MediumBoxShape")
 
 [node name="LooseBook" type="RigidBody3D" parent="." groups=["grabbable"]]
-position = Vector3(-3, 1.3, -3.6)
+position = Vector3(0.2, 1.38, -5.65)
+rotation_degrees = Vector3(90, 0, 0)
 collision_layer = 4
 collision_mask = 7
 mass = 0.4
@@ -1607,7 +1608,7 @@ position = Vector3(0, 0, 0)
 shape = SubResource("LooseBookShape")
 
 [node name="BedsideClutter" type="RigidBody3D" parent="." groups=["grabbable"]]
-position = Vector3(-2.25, 0.94, 2.05)
+position = Vector3(-2.12, 0.94, 2.3)
 collision_layer = 4
 collision_mask = 7
 mass = 0.3
@@ -1631,91 +1632,114 @@ position = Vector3(0, 0.02, 5.4)
 
 [node name="DebugOverlay" parent="Sandbox" node_paths=PackedStringArray("grabber") instance=ExtResource("4")]
 grabber = NodePath("../Player/Grabber")
+debug_visible = false
 
 [node name="SearchSpots" type="Node3D" parent="."]
 
+; Inspect the far side of the bedside clutter from the aisle.
 [node name="BedsideSurface" type="Marker3D" parent="SearchSpots"]
-position = Vector3(-1.85, 0.83, 2.35)
+position = Vector3(-2.28, 0.83, 1.99)
 script = ExtResource("3")
 search_category = 0
+intended_action = 0
 
+; Walk around the desk to see behind the existing movable cover.
 [node name="DeskSurface" type="Marker3D" parent="SearchSpots"]
-position = Vector3(-3, 1.31, -3)
+position = Vector3(-4.55, 1.31, -4.3)
 script = ExtResource("3")
 search_category = 0
+intended_action = 0
 
+; Look past the upright loose book from an oblique angle.
 [node name="ShelfSurface" type="Marker3D" parent="SearchSpots"]
-position = Vector3(0.2, 1.14, -5.75)
+position = Vector3(0.2, 1.14, -6.06)
 script = ExtResource("3")
 search_category = 0
+intended_action = 0
 
 [node name="UnderCoveredBox" type="Marker3D" parent="SearchSpots"]
 position = Vector3(-4.3, 0.06, 4.7)
 script = ExtResource("3")
 search_category = 1
+intended_action = 3
 
 [node name="UnderFloorTray" type="Marker3D" parent="SearchSpots"]
 position = Vector3(-0.8, 0.06, 1.5)
 script = ExtResource("3")
 search_category = 1
+intended_action = 3
 
 [node name="UnderDeskCover" type="Marker3D" parent="SearchSpots"]
 position = Vector3(-4.5, 1.31, -3.6)
 script = ExtResource("3")
 search_category = 1
+intended_action = 3
 
 [node name="BehindClutterScreen" type="Marker3D" parent="SearchSpots"]
 position = Vector3(5.6, 0.06, -1.2)
 script = ExtResource("3")
 search_category = 1
+intended_action = 3
 
+; Shifted away from the diagonal spawn-to-floor gap; prone approach remains clear.
 [node name="UnderBedDeep" type="Marker3D" parent="SearchSpots"]
-position = Vector3(-4.4, 0.06, 1.1)
+position = Vector3(-5.15, 0.06, 1.1)
 script = ExtResource("3")
 search_category = 2
+intended_action = 2
 
 [node name="UnderCouchDeep" type="Marker3D" parent="SearchSpots"]
 position = Vector3(4.5, 0.06, 2.05)
 script = ExtResource("3")
 search_category = 2
+intended_action = 2
 
 [node name="UnderDeskRear" type="Marker3D" parent="SearchSpots"]
 position = Vector3(-4.6, 0.06, -4.3)
 script = ExtResource("3")
 search_category = 2
+intended_action = 1
 
 [node name="UnderBedSide" type="Marker3D" parent="SearchSpots"]
 position = Vector3(-5.5, 0.06, 0.8)
 script = ExtResource("3")
 search_category = 2
+intended_action = 2
 
 [node name="BehindWardrobe" type="Marker3D" parent="SearchSpots"]
 position = Vector3(5.3, 0.06, -6.3)
 script = ExtResource("3")
 search_category = 3
+intended_action = 0
 
+; Stay behind the bed silhouette even after the keys settle to the floor.
 [node name="BehindHeadboard" type="Marker3D" parent="SearchSpots"]
-position = Vector3(-4.7, 0.06, -0.45)
+position = Vector3(-5.1, 0.06, -0.45)
 script = ExtResource("3")
 search_category = 3
+intended_action = 0
 
 [node name="BehindCouch" type="Marker3D" parent="SearchSpots"]
 position = Vector3(5.7, 0.06, 1.15)
 script = ExtResource("3")
 search_category = 3
+intended_action = 0
 
 [node name="WardrobeTop" type="Marker3D" parent="SearchSpots"]
 position = Vector3(4.5, 3.16, -4.75)
 script = ExtResource("3")
 search_category = 4
+intended_action = 4
 
 [node name="ShelfTop" type="Marker3D" parent="SearchSpots"]
 position = Vector3(0.2, 3.46, -5.9)
 script = ExtResource("3")
 search_category = 4
+intended_action = 4
 
 [node name="HutchTop" type="Marker3D" parent="SearchSpots"]
 position = Vector3(-3.8, 3.31, -4.35)
 script = ExtResource("3")
 search_category = 4
+intended_action = 4
 

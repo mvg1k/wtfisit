@@ -67,6 +67,13 @@ func _unhandled_input(event: InputEvent) -> void:
 		return
 	if not player.mouse_captured:
 		return
+	if event.is_action_pressed("drop_object"):
+		# Also discard input queued earlier this frame: a late LMB release or E
+		# must not throw or immediately pick the dropped prop back up.
+		_interact_requested = false
+		release()
+		get_viewport().set_input_as_handled()
+		return
 	if is_instance_valid(held_body):
 		if event is InputEventMouseMotion and Input.is_action_pressed("rotate_held"):
 			var yaw := Quaternion(camera.global_basis.y, event.relative.x * rotation_sensitivity)

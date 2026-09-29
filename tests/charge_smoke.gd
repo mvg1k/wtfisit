@@ -5,6 +5,7 @@ const PROP: PackedScene = preload("res://scenes/props/physics_prop.tscn")
 var _room: Node3D
 var _player: SandboxPlayer
 var _grabber: PhysicsGrabber
+var _indicator: ThrowChargeIndicator
 var _failures: int = 0
 
 
@@ -17,8 +18,10 @@ func _run() -> void:
 	root.add_child(_room)
 	_player = _room.get_node("Player") as SandboxPlayer
 	_grabber = _player.get_node("Grabber") as PhysicsGrabber
+	_indicator = _room.get_node("DebugOverlay/ThrowChargeIndicator") as ThrowChargeIndicator
 	_grabber._throw_rng.seed = 20260929
 	await _steps(30)
+	_check_indicator(false, "Idle crosshair has no ring")
 	Input.action_press("move_forward")
 	await _steps(20)
 	_check(absf(_player.velocity.z + 5.4) < 0.05, "Standing reaches 5.4 m/s (+20%)")
@@ -35,6 +38,7 @@ func _run() -> void:
 		var charged := _grabber.throw_charge
 		_check(absf(charged - minf(frames / 72.0, 1.0)) < 0.025,
 			"Charge timing/clamp: %d frames" % frames)
+		_check_indicator(true, "Ring follows charge: %d frames" % frames)
 		_room.get_node("DebugOverlay")._update_stats()
 		_check(_room.get_node("DebugOverlay/Stats").text.contains("Throw:"), "Debug overlay reports active charge")
 		body.linear_velocity = Vector3.ZERO
@@ -45,6 +49,7 @@ func _run() -> void:
 			"Release launches the selected strength: %d frames" % frames)
 		_check(not _grabber.is_charging_throw and _grabber.throw_charge == 0.0,
 			"Throw clears charge")
+		_check_indicator(false, "Throw clears ring")
 		var orientation := body.global_basis.get_rotation_quaternion()
 		await _steps(8)
 		_check(orientation.angle_to(body.global_basis.get_rotation_quaternion()) > 0.15
@@ -52,6 +57,7 @@ func _run() -> void:
 		body.queue_free()
 		await _steps(2)
 	await _test_launch_response()
+	await _test_right_click()
 	await _test_cancellation()
 	_room.queue_free()
 	await _steps(2)
@@ -99,6 +105,32 @@ func _test_launch_response() -> void:
 	await _steps(2)
 
 
+func _test_right_click() -> void:
+	for mode: String in ["idle", "charging", "queued_throw", "queued_interact"]:
+		var body := await _pickup()
+		if mode != "idle":
+			_mouse(true)
+			await _steps(30)
+		if mode == "queued_throw":
+			_mouse(false)
+		if mode == "queued_interact":
+			_key(KEY_E)
+		var linear := _velocity(body)
+		var angular := body.angular_velocity
+		_mouse(true, MOUSE_BUTTON_RIGHT)
+		_mouse(false, MOUSE_BUTTON_RIGHT)
+		_check(_grabber.held_body == null and _grabber.throw_charge == 0.0
+			and not _grabber.is_charging_throw and _velocity(body).is_equal_approx(linear)
+			and body.angular_velocity.is_equal_approx(angular), "RMB drops immediately without impulse: " + mode)
+		_check_indicator(false, "RMB clears ring: " + mode)
+		_mouse(false)
+		await _steps(3)
+		_check(_grabber.held_body == null and _grabber._thrown_bodies.is_empty(),
+			"RMB consumes queued actions and later LMB release: " + mode)
+		body.queue_free()
+		await _steps(2)
+
+
 func _test_cancellation() -> void:
 	for reason: String in ["drop", "escape", "focus", "obstruction", "deleted"]:
 		var body := await _pickup()
@@ -121,6 +153,7 @@ func _test_cancellation() -> void:
 		await _steps(2)
 		_check(_grabber.held_body == null and not _grabber.is_charging_throw and _grabber.throw_charge == 0.0
 			and _grabber._thrown_bodies.is_empty(), "Cancellation ignores later LMB release: " + reason)
+		_check_indicator(false, "Cancellation clears ring: " + reason)
 		if is_instance_valid(body):
 			body.queue_free()
 		await _steps(2)
@@ -130,6 +163,7 @@ func _test_cancellation() -> void:
 	await _steps(25)
 	_check(_player.stance == SandboxPlayer.Stance.CROUCHING and _grabber.is_charging_throw
 		and _grabber.held_body == body, "Crouching while charging preserves a safe hold")
+	_check_indicator(true, "Ring follows charge across a safe stance change")
 	Input.action_release("crouch")
 	_mouse(false)
 	await _steps(2)
@@ -155,12 +189,18 @@ func _test_restart() -> void:
 	_mouse(true)
 	await _steps(12)
 	_check(grabber.is_charging_throw, "Restart fixture has an active charge")
+	var old_indicator := game.room.get_node("Sandbox/DebugOverlay/ThrowChargeIndicator") as ThrowChargeIndicator
+	old_indicator._process(0.0)
+	_check(old_indicator.visible, "Restart fixture displays active ring")
 	await game.start_run()
 	_mouse(false)
 	await _steps(2)
 	_check(not is_instance_valid(grabber) and game.room.grabber.held_body == null
 		and not game.room.grabber.is_charging_throw and game.room.grabber.throw_charge == 0.0,
 		"Room restart discards charge and ignores old release")
+	var new_indicator := game.room.get_node("Sandbox/DebugOverlay/ThrowChargeIndicator") as ThrowChargeIndicator
+	_check(not is_instance_valid(old_indicator) and not new_indicator.visible
+		and new_indicator.displayed_charge == 0.0, "Restart discards ring and creates a clean HUD")
 	game.queue_free()
 	await _steps(2)
 
@@ -186,9 +226,16 @@ func _velocity(body: RigidBody3D) -> Vector3:
 	return PhysicsServer3D.body_get_state(body.get_rid(), PhysicsServer3D.BODY_STATE_LINEAR_VELOCITY)
 
 
-func _mouse(pressed: bool) -> void:
+func _check_indicator(active: bool, description: String) -> void:
+	# Refresh the normal frame-driven view at this exact physics/input boundary.
+	_indicator._process(0.0)
+	_check(_indicator.visible == active and is_equal_approx(_indicator.displayed_charge,
+		_grabber.throw_charge if active else 0.0), description)
+
+
+func _mouse(pressed: bool, button: MouseButton = MOUSE_BUTTON_LEFT) -> void:
 	var event := InputEventMouseButton.new()
-	event.button_index = MOUSE_BUTTON_LEFT
+	event.button_index = button
 	event.pressed = pressed
 	root.push_input(event, true)
 

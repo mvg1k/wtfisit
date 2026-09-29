@@ -25,7 +25,10 @@ and throwing household clutter provides play and stress relief.
 - Throws add camera-relative tumble with an orientation contribution, a small
   random variation, and mass/size scaling. Existing spin contributes; the result
   is capped at 7 rad/s. Damping is restored, and physics owns flight/contacts.
-- Charge is reported only in debug builds in the F3 stats. Drop, Escape, focus
+- A thin ring around the crosshair shows charge, with a subtle pulse at maximum.
+  It clears on release/cancel; exact percentages remain in debug-build F3 stats.
+  RMB drops without throwing, including during charge or a queued LMB release.
+  Drop, Escape, focus
   loss, forced release, deletion and restart clear it; cursor recapture cannot
   charge. Changing stance continues charging while the hold remains safe.
 
@@ -40,11 +43,18 @@ and throwing household clutter provides play and stress relief.
 - Seventeen authored spots: 3 SURFACE, 4 OCCLUDED, 4 LOW_UNDER, 3 BEHIND,
   and 3 HIGH. Category-first selection avoids the last two categories and last
   three spots where possible, with graceful fallback for small candidate pools.
-  Each has enabled/category metadata; initial overlap checks reject blocked placements.
+  Each has enabled/category metadata and one primary intended action:
+  VISUAL_SEARCH (6), CROUCH (1), PRONE (3), MOVE_PROP (4), CLIMB (3).
+  Actions describe authored intent, not requirements enforced on the player.
+  Initial overlap checks reject blocked placements. A single bounded pass also
+  rejects fully exposed placements using the initial camera frustum and rays to
+  collider centers/inset corners, blocked by World or Props. Selection/history
+  applies only to survivors; an all-exposed pool uses the unavailable state.
   No available spots yields an explicit unavailable state with Enter to retry.
 - Time is monotonic wall-clock time, including cursor release/focus loss.
   The sandbox continues running after completion; only the run timer stops.
-- F4 explicitly shows search diagnostics (state/target/spot/category), hidden by default
+- F4 explicitly shows search diagnostics (state/target/spot/category/action and
+  spawn rejected/checked counts), hidden by default
   and gated to debug builds. F7 rerolls only while those diagnostics are shown.
   Enter is restart; R remains exclusively held-object rotation.
 - Ctrl is hold-to-crouch; Z toggles prone. Camera and capsule ease between actual
@@ -54,6 +64,10 @@ and throwing household clutter provides play and stress relief.
   movable covers, boxes and two stools. Low spots use crouch/prone viewpoints;
   covered spots require moving props. High routes use ordinary jumps onto broad
   movable supports, including box-to-desktop access to the hutch. No mantling.
+- The three easy surface spots use existing bedside clutter, the desk cover and
+  an upright loose book for occlusion; walking/changing angle reveals them.
+  UnderBedDeep and BehindHeadboard avoid diagonal sightlines from spawn, including
+  after settling. All seventeen placements remain eligible and retrievable.
 - Player take-off does not inherit small platform contact velocities, avoiding
   jitter-induced launches when jumping from movable supports.
 
@@ -98,8 +112,8 @@ and throwing household clutter provides play and stress relief.
   lives in the player or grabber.
 - `scenes/search_room.tscn`: expanded furniture playground, movable covers/supports
   and seventeen SearchSpot markers. SearchRoom exposes grabber/spot-root references.
-- `scripts/search_spot.gd`: lightweight authored marker with category and
-  placement checks, queried only at run start.
+- `scripts/search_spot.gd`: lightweight authored marker with spatial category,
+  intended action, placement and spawn-exposure checks, queried only at run start.
 - `scenes/props/keys.tscn`, `scripts/target_item.gd`: physical TargetItem identity
   and simple keys geometry. Only keys are implemented.
 - `scripts/search_hud.gd`: objective, timer, result, opt-in search diagnostics.
@@ -112,6 +126,8 @@ and throwing household clutter provides play and stress relief.
   mesh/collider, grabbable group, CCD, and sleeping enabled. No prop script.
 - `scenes/debug_overlay.tscn`, `scripts/debug_overlay.gd`: crosshair, controls,
   optional FPS/held-body/distance/stance/charge statistics refreshed at 5 Hz.
+- `scripts/throw_charge_indicator.gd`: replaceable frame-updated radial HUD view
+  of grabber charge, independent of F3 statistics (off by default in search).
 - Collision layers: 1 World, 2 Player, 3 Props. Picking checks World + Props so
   walls block interaction. Eligible props belong to `grabbable`.
 - Use unit-scale physics roots; resize shapes/meshes. Keep generated `.gd.uid`

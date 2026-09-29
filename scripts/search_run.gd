@@ -15,6 +15,8 @@ var current_spot: SearchSpot
 var target_name: String = "KEYS"
 var error_message: String = ""
 var debug_search_visible: bool = false
+var spawn_visibility_checked: int = 0
+var spawn_visibility_rejected: int = 0
 var elapsed_seconds: float:
 	get:
 		if state == State.SEARCHING:
@@ -54,6 +56,8 @@ func start_run() -> void:
 	state = State.PREPARING
 	_completion_seconds = 0.0
 	error_message = ""
+	spawn_visibility_checked = 0
+	spawn_visibility_rejected = 0
 	target = null
 	current_spot = null
 	state_changed.emit()
@@ -86,6 +90,15 @@ func start_run() -> void:
 	if candidates.is_empty():
 		item.free()
 		_fail("No clear, compatible search spots are available.")
+		return
+	# One bounded pass before category/history selection; rejected candidates
+	# never pollute recent history. Never fall back to an exposed placement.
+	spawn_visibility_checked = candidates.size()
+	candidates = room.hidden_from_spawn(candidates, item)
+	spawn_visibility_rejected = spawn_visibility_checked - candidates.size()
+	if candidates.is_empty():
+		item.free()
+		_fail("All compatible search spots are exposed from spawn.")
 		return
 	current_spot = _choose_spot(candidates)
 	target = item
