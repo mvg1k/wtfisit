@@ -36,5 +36,11 @@ func _update_stats() -> void:
 		detail += "\nHold distance: %.2f m" % grabber.current_hold_distance
 		if OS.is_debug_build() and grabber.is_charging_throw:
 			detail += "\nThrow: %d%%" % roundi(grabber.throw_charge * 100.0)
+		if OS.is_debug_build() and body is ImpactBody and body.impact_material != null:
+			detail += "\n%s | %s\nLast impact: %.1f | thresholds: %.0f / %.0f" % [
+				ImpactMaterial.Kind.keys()[body.impact_material.kind], ImpactBody.State.keys()[body.damage_state],
+				body.last_impact_severity, body.impact_material.damage_threshold, body.impact_material.break_threshold]
+			detail += "\nClosing: %.2f m/s | effective mass: %.2f kg\n%s" % [
+				body.last_closing_speed, body.last_effective_mass, body.last_impact_source]
 	_stats.text = "FPS: %d\n%s\nStance: %s" % [
 		Engine.get_frames_per_second(), detail, SandboxPlayer.Stance.keys()[grabber.player.stance]]

@@ -29,14 +29,14 @@ func _run() -> void:
 	await _steps(14)
 	_check(_player.velocity.length() < 0.05, "Faster standing movement still brakes promptly")
 	# Exercise real mouse press/release events, including a tap in one frame.
-	for frames: int in [0, 24, 48, 72, 108]:
+	for frames: int in [0, 20, 40, 60, 90]:
 		var body := await _pickup()
 		_mouse(true)
 		await _steps(frames)
 		_check(_grabber.held_body == body and _grabber.is_charging_throw,
 			"Charging keeps the body held: %d frames" % frames)
 		var charged := _grabber.throw_charge
-		_check(absf(charged - minf(frames / 72.0, 1.0)) < 0.025,
+		_check(absf(charged - minf(frames / 60.0, 1.0)) < 0.025,
 			"Charge timing/clamp: %d frames" % frames)
 		_check_indicator(true, "Ring follows charge: %d frames" % frames)
 		_room.get_node("DebugOverlay")._update_stats()
@@ -71,7 +71,7 @@ func _test_launch_response() -> void:
 	for mass: float in [0.25, 2.0, 12.0]:
 		var body := await _pickup(mass)
 		body.linear_velocity = Vector3.ZERO
-		_grabber.release(true, 1.2)
+		_grabber.release(true, 1.0)
 		speeds.append(-_velocity(body).z)
 		body.queue_free()
 		await _steps(2)
@@ -86,7 +86,7 @@ func _test_launch_response() -> void:
 		body.angular_velocity = Vector3.ZERO
 		_player.velocity = motion
 		_grabber.release(true, 0.4)
-		var expected := Vector3(0, 0, -9) + (motion * 0.5).limit_length(3.0)
+		var expected := Vector3(0, 0, -10) + (motion * 0.5).limit_length(3.0)
 		_check(_velocity(body).distance_to(expected) < 0.01, "Bounded forward/sideways/jump momentum: " + str(motion))
 		spins.append(PhysicsServer3D.body_get_state(body.get_rid(), PhysicsServer3D.BODY_STATE_ANGULAR_VELOCITY))
 		body.queue_free()

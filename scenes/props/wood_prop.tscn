@@ -1,0 +1,154 @@
+[gd_scene load_steps=17 format=3]
+[ext_resource type="Script" path="res://scripts/impact_body.gd" id="1"]
+[ext_resource type="Resource" path="res://resources/materials/wood.tres" id="2"]
+[sub_resource type="PhysicsMaterial" id="Contact"]
+friction = 0.75
+bounce = 0.05
+[sub_resource type="StandardMaterial3D" id="Surface"]
+albedo_color = Color(0.5, 0.34, 0.2, 1)
+roughness = 0.65
+[sub_resource type="StandardMaterial3D" id="Cracked"]
+albedo_color = Color(0.36, 0.2448, 0.144, 1)
+roughness = 0.65
+[sub_resource type="StandardMaterial3D" id="Broken"]
+albedo_color = Color(0.2, 0.136, 0.08, 1)
+roughness = 0.65
+[sub_resource type="StandardMaterial3D" id="Detail"]
+albedo_color = Color(0.28, 0.15, 0.07, 1)
+[sub_resource type="BoxMesh" id="Mesh0"]
+size = Vector3(0.5, 0.25, 0.3)
+[sub_resource type="BoxMesh" id="Mesh1"]
+size = Vector3(0.45, 0.001, 0.004)
+[sub_resource type="BoxMesh" id="Mesh2"]
+size = Vector3(0.426, 0.001, 0.007)
+[sub_resource type="BoxMesh" id="Mesh3"]
+size = Vector3(0.402, 0.001, 0.004)
+[sub_resource type="BoxMesh" id="Mesh4"]
+size = Vector3(0.378, 0.001, 0.007)
+[sub_resource type="BoxMesh" id="Mesh5"]
+size = Vector3(0.001, 0.17, 0.22)
+[sub_resource type="BoxMesh" id="Mesh6"]
+size = Vector3(0.001, 0.12400000000000001, 0.16999999999999998)
+[sub_resource type="BoxMesh" id="Mesh7"]
+size = Vector3(0.001, 0.07800000000000001, 0.12)
+[sub_resource type="BoxShape3D" id="Shape0"]
+size = Vector3(0.5, 0.25, 0.3)
+[node name="WoodBlock" type="RigidBody3D" node_paths=PackedStringArray("intact_visual", "cracked_visual", "broken_visual") groups=["grabbable", "impact_props"]]
+collision_layer = 4
+collision_mask = 7
+mass = 1.5
+physics_material_override = SubResource("Contact")
+continuous_cd = true
+linear_damp = 0.15
+angular_damp = 0.4
+script = ExtResource("1")
+impact_material = ExtResource("2")
+intact_visual = NodePath("Intact")
+cracked_visual = NodePath("Cracked")
+broken_visual = NodePath("Broken")
+fragment_extent = Vector3(0.5, 0.25, 0.3)
+fragment_material = SubResource("Surface")
+[node name="Collision0" type="CollisionShape3D" parent="."]
+position = Vector3(0, 0, 0)
+shape = SubResource("Shape0")
+[node name="Intact" type="Node3D" parent="."]
+[node name="Timber" type="MeshInstance3D" parent="Intact"]
+position = Vector3(0, 0, 0)
+mesh = SubResource("Mesh0")
+material_override = SubResource("Surface")
+[node name="Grain0" type="MeshInstance3D" parent="Intact"]
+position = Vector3(0.005, 0.125, -0.11)
+mesh = SubResource("Mesh1")
+material_override = SubResource("Detail")
+[node name="Grain1" type="MeshInstance3D" parent="Intact"]
+position = Vector3(0.005, 0.125, -0.043)
+mesh = SubResource("Mesh2")
+material_override = SubResource("Detail")
+[node name="Grain2" type="MeshInstance3D" parent="Intact"]
+position = Vector3(0.005, 0.125, 0.024000000000000007)
+mesh = SubResource("Mesh3")
+material_override = SubResource("Detail")
+[node name="Grain3" type="MeshInstance3D" parent="Intact"]
+position = Vector3(0.005, 0.125, 0.09100000000000001)
+mesh = SubResource("Mesh4")
+material_override = SubResource("Detail")
+[node name="EndGrain0" type="MeshInstance3D" parent="Intact"]
+position = Vector3(0.25, 0, 0)
+mesh = SubResource("Mesh5")
+material_override = SubResource("Detail")
+[node name="EndGrain1" type="MeshInstance3D" parent="Intact"]
+position = Vector3(0.25, 0, 0)
+mesh = SubResource("Mesh6")
+material_override = SubResource("Detail")
+[node name="EndGrain2" type="MeshInstance3D" parent="Intact"]
+position = Vector3(0.25, 0, 0)
+mesh = SubResource("Mesh7")
+material_override = SubResource("Detail")
+[node name="Cracked" type="Node3D" parent="."]
+visible = false
+[node name="Timber" type="MeshInstance3D" parent="Cracked"]
+position = Vector3(0, 0, 0)
+mesh = SubResource("Mesh0")
+material_override = SubResource("Cracked")
+[node name="Grain0" type="MeshInstance3D" parent="Cracked"]
+position = Vector3(0.005, 0.125, -0.11)
+mesh = SubResource("Mesh1")
+material_override = SubResource("Detail")
+[node name="Grain1" type="MeshInstance3D" parent="Cracked"]
+position = Vector3(0.005, 0.125, -0.043)
+mesh = SubResource("Mesh2")
+material_override = SubResource("Detail")
+[node name="Grain2" type="MeshInstance3D" parent="Cracked"]
+position = Vector3(0.005, 0.125, 0.024000000000000007)
+mesh = SubResource("Mesh3")
+material_override = SubResource("Detail")
+[node name="Grain3" type="MeshInstance3D" parent="Cracked"]
+position = Vector3(0.005, 0.125, 0.09100000000000001)
+mesh = SubResource("Mesh4")
+material_override = SubResource("Detail")
+[node name="EndGrain0" type="MeshInstance3D" parent="Cracked"]
+position = Vector3(0.25, 0, 0)
+mesh = SubResource("Mesh5")
+material_override = SubResource("Detail")
+[node name="EndGrain1" type="MeshInstance3D" parent="Cracked"]
+position = Vector3(0.25, 0, 0)
+mesh = SubResource("Mesh6")
+material_override = SubResource("Detail")
+[node name="EndGrain2" type="MeshInstance3D" parent="Cracked"]
+position = Vector3(0.25, 0, 0)
+mesh = SubResource("Mesh7")
+material_override = SubResource("Detail")
+[node name="Broken" type="Node3D" parent="."]
+visible = false
+[node name="Timber" type="MeshInstance3D" parent="Broken"]
+position = Vector3(0, 0, 0)
+mesh = SubResource("Mesh0")
+material_override = SubResource("Broken")
+[node name="Grain0" type="MeshInstance3D" parent="Broken"]
+position = Vector3(0.005, 0.125, -0.11)
+mesh = SubResource("Mesh1")
+material_override = SubResource("Detail")
+[node name="Grain1" type="MeshInstance3D" parent="Broken"]
+position = Vector3(0.005, 0.125, -0.043)
+mesh = SubResource("Mesh2")
+material_override = SubResource("Detail")
+[node name="Grain2" type="MeshInstance3D" parent="Broken"]
+position = Vector3(0.005, 0.125, 0.024000000000000007)
+mesh = SubResource("Mesh3")
+material_override = SubResource("Detail")
+[node name="Grain3" type="MeshInstance3D" parent="Broken"]
+position = Vector3(0.005, 0.125, 0.09100000000000001)
+mesh = SubResource("Mesh4")
+material_override = SubResource("Detail")
+[node name="EndGrain0" type="MeshInstance3D" parent="Broken"]
+position = Vector3(0.25, 0, 0)
+mesh = SubResource("Mesh5")
+material_override = SubResource("Detail")
+[node name="EndGrain1" type="MeshInstance3D" parent="Broken"]
+position = Vector3(0.25, 0, 0)
+mesh = SubResource("Mesh6")
+material_override = SubResource("Detail")
+[node name="EndGrain2" type="MeshInstance3D" parent="Broken"]
+position = Vector3(0.25, 0, 0)
+mesh = SubResource("Mesh7")
+material_override = SubResource("Detail")

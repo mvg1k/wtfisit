@@ -1,0 +1,128 @@
+[gd_scene load_steps=15 format=3]
+[ext_resource type="Script" path="res://scripts/impact_body.gd" id="1"]
+[ext_resource type="Resource" path="res://resources/materials/glass.tres" id="2"]
+[sub_resource type="PhysicsMaterial" id="Contact"]
+friction = 0.75
+bounce = 0.05
+[sub_resource type="StandardMaterial3D" id="Surface"]
+albedo_color = Color(0.36, 0.68, 0.74, 0.65)
+roughness = 0.15
+transparency = 1
+cull_mode = 2
+[sub_resource type="StandardMaterial3D" id="Cracked"]
+albedo_color = Color(0.2592, 0.4896, 0.5328, 0.65)
+roughness = 0.15
+transparency = 1
+cull_mode = 2
+[sub_resource type="StandardMaterial3D" id="Broken"]
+albedo_color = Color(0.144, 0.272, 0.296, 0.65)
+roughness = 0.15
+transparency = 1
+cull_mode = 2
+[sub_resource type="StandardMaterial3D" id="Detail"]
+albedo_color = Color(0.08, 0.09, 0.1, 1)
+[sub_resource type="CylinderMesh" id="Mesh0"]
+top_radius = 0.15
+bottom_radius = 0.15
+height = 0.34
+radial_segments = 16
+[sub_resource type="CylinderMesh" id="Mesh1"]
+top_radius = 0.065
+bottom_radius = 0.15
+height = 0.1
+radial_segments = 16
+[sub_resource type="CylinderMesh" id="Mesh2"]
+top_radius = 0.065
+bottom_radius = 0.065
+height = 0.1
+radial_segments = 16
+[sub_resource type="CylinderMesh" id="Mesh3"]
+top_radius = 0.078
+bottom_radius = 0.078
+height = 0.04
+radial_segments = 16
+[sub_resource type="CylinderShape3D" id="Shape0"]
+radius = 0.15
+height = 0.34
+[sub_resource type="ConvexPolygonShape3D" id="Shape1"]
+points = PackedVector3Array(0.065, 0.05, 0, 0.060052, 0.05, 0.024874, 0.045962, 0.05, 0.045962, 0.024874, 0.05, 0.060052, 0, 0.05, 0.065, -0.024874, 0.05, 0.060052, -0.045962, 0.05, 0.045962, -0.060052, 0.05, 0.024874, -0.065, 0.05, 0, -0.060052, 0.05, -0.024874, -0.045962, 0.05, -0.045962, -0.024874, 0.05, -0.060052, 0, 0.05, -0.065, 0.024874, 0.05, -0.060052, 0.045962, 0.05, -0.045962, 0.060052, 0.05, -0.024874, 0.15, -0.05, 0, 0.138582, -0.05, 0.057403, 0.106066, -0.05, 0.106066, 0.057403, -0.05, 0.138582, 0, -0.05, 0.15, -0.057403, -0.05, 0.138582, -0.106066, -0.05, 0.106066, -0.138582, -0.05, 0.057403, -0.15, -0.05, 0, -0.138582, -0.05, -0.057403, -0.106066, -0.05, -0.106066, -0.057403, -0.05, -0.138582, 0, -0.05, -0.15, 0.057403, -0.05, -0.138582, 0.106066, -0.05, -0.106066, 0.138582, -0.05, -0.057403)
+[sub_resource type="CylinderShape3D" id="Shape2"]
+radius = 0.078
+height = 0.12
+[node name="GlassBottle" type="RigidBody3D" node_paths=PackedStringArray("intact_visual", "cracked_visual", "broken_visual") groups=["grabbable", "impact_props"]]
+collision_layer = 4
+collision_mask = 7
+mass = 0.45
+physics_material_override = SubResource("Contact")
+continuous_cd = true
+linear_damp = 0.15
+angular_damp = 0.4
+script = ExtResource("1")
+impact_material = ExtResource("2")
+intact_visual = NodePath("Intact")
+cracked_visual = NodePath("Cracked")
+broken_visual = NodePath("Broken")
+fragment_extent = Vector3(0.3, 0.56, 0.3)
+fragment_material = SubResource("Surface")
+[node name="Collision0" type="CollisionShape3D" parent="."]
+position = Vector3(0, -0.11, 0)
+shape = SubResource("Shape0")
+[node name="Collision1" type="CollisionShape3D" parent="."]
+position = Vector3(0, 0.11, 0)
+shape = SubResource("Shape1")
+[node name="Collision2" type="CollisionShape3D" parent="."]
+position = Vector3(0, 0.22, 0)
+shape = SubResource("Shape2")
+[node name="Intact" type="Node3D" parent="."]
+[node name="Body" type="MeshInstance3D" parent="Intact"]
+position = Vector3(0, -0.11, 0)
+mesh = SubResource("Mesh0")
+material_override = SubResource("Surface")
+[node name="Shoulder" type="MeshInstance3D" parent="Intact"]
+position = Vector3(0, 0.11, 0)
+mesh = SubResource("Mesh1")
+material_override = SubResource("Surface")
+[node name="Neck" type="MeshInstance3D" parent="Intact"]
+position = Vector3(0, 0.21, 0)
+mesh = SubResource("Mesh2")
+material_override = SubResource("Surface")
+[node name="Lip" type="MeshInstance3D" parent="Intact"]
+position = Vector3(0, 0.26, 0)
+mesh = SubResource("Mesh3")
+material_override = SubResource("Surface")
+[node name="Cracked" type="Node3D" parent="."]
+visible = false
+[node name="Body" type="MeshInstance3D" parent="Cracked"]
+position = Vector3(0, -0.11, 0)
+mesh = SubResource("Mesh0")
+material_override = SubResource("Cracked")
+[node name="Shoulder" type="MeshInstance3D" parent="Cracked"]
+position = Vector3(0, 0.11, 0)
+mesh = SubResource("Mesh1")
+material_override = SubResource("Cracked")
+[node name="Neck" type="MeshInstance3D" parent="Cracked"]
+position = Vector3(0, 0.21, 0)
+mesh = SubResource("Mesh2")
+material_override = SubResource("Cracked")
+[node name="Lip" type="MeshInstance3D" parent="Cracked"]
+position = Vector3(0, 0.26, 0)
+mesh = SubResource("Mesh3")
+material_override = SubResource("Cracked")
+[node name="Broken" type="Node3D" parent="."]
+visible = false
+[node name="Body" type="MeshInstance3D" parent="Broken"]
+position = Vector3(0, -0.11, 0)
+mesh = SubResource("Mesh0")
+material_override = SubResource("Broken")
+[node name="Shoulder" type="MeshInstance3D" parent="Broken"]
+position = Vector3(0, 0.11, 0)
+mesh = SubResource("Mesh1")
+material_override = SubResource("Broken")
+[node name="Neck" type="MeshInstance3D" parent="Broken"]
+position = Vector3(0, 0.21, 0)
+mesh = SubResource("Mesh2")
+material_override = SubResource("Broken")
+[node name="Lip" type="MeshInstance3D" parent="Broken"]
+position = Vector3(0, 0.26, 0)
+mesh = SubResource("Mesh3")
+material_override = SubResource("Broken")

@@ -49,7 +49,7 @@ func _run() -> void:
 		_grabber.held_body = body
 		_grabber._saved_angular_damp = body.angular_damp
 		var before := body.global_transform
-		_grabber.release(true, 1.2)
+		_grabber.release(true, 1.0)
 		var velocity: Vector3 = PhysicsServer3D.body_get_state(body.get_rid(), PhysicsServer3D.BODY_STATE_LINEAR_VELOCITY)
 		_check(body.global_transform == before and is_equal_approx(-velocity.z,
 			_grabber.full_throw_speed * _grabber._throw_mass_factor(body.mass)),
@@ -107,7 +107,7 @@ func _test_close_release() -> void:
 	_grabber.held_body = body
 	_grabber._saved_angular_damp = body.angular_damp
 	var before := body.global_transform
-	_grabber.release(true, 1.2)
+	_grabber.release(true, 1.0)
 	var velocity: Vector3 = PhysicsServer3D.body_get_state(body.get_rid(), PhysicsServer3D.BODY_STATE_LINEAR_VELOCITY)
 	_check(body.global_transform == before and -velocity.z > 0.0 and -velocity.z < 22.8,
 		"Close release sweeps the new impulse immediately without teleporting")

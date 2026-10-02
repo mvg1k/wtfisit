@@ -13,6 +13,7 @@ func _initialize() -> void:
 
 func _run() -> void:
 	await _test_categories()
+	await _test_bedside_table()
 	for data: Array in [
 		["UnderCoveredBox", "CoveredBox", Vector3(-4.3, 0.02, 5.9)],
 		["UnderFloorTray", "FloorTray", Vector3(-0.8, 0.02, 3.0)],
@@ -57,6 +58,24 @@ func _cleanup() -> void:
 	Input.action_release("jump")
 	_room.queue_free()
 	await _steps(3)
+
+
+func _test_bedside_table() -> void:
+	await _setup(Vector3(-2, 0.02, 3.5))
+	var table := _room.get_node("BedsideTable") as RigidBody3D
+	_check(table != null and table.is_in_group("grabbable"), "Small bedside furniture is one movable, grabbable body")
+	if table == null:
+		await _cleanup()
+		return
+	await _steps(120)
+	_check(table.sleeping, "Bedside table settles with its existing clutter")
+	var start := table.global_position
+	_face(start)
+	Input.action_press("move_forward")
+	await _steps(45)
+	Input.action_release("move_forward")
+	_check(table.global_position.distance_to(start) > 0.1, "Walking into the bedside table moves it with existing pushing")
+	await _cleanup()
 
 
 func _test_cover(spot_name: String, cover_name: String, position: Vector3) -> void:

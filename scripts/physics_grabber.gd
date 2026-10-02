@@ -23,7 +23,7 @@ signal object_picked_up(body: RigidBody3D)
 @export var max_acceleration: float = 50.0
 @export var max_force: float = 240.0
 @export var break_distance: float = 2.8
-@export var throw_charge_duration: float = 1.2
+@export var throw_charge_duration: float = 1.0
 @export var toss_speed: float = 4.0
 @export var full_throw_speed: float = 19.0
 @export var player_throw_inheritance: float = 0.5
@@ -40,6 +40,9 @@ var _throw_rng := RandomNumberGenerator.new()
 var current_hold_distance: float = 2.0
 var _minimum_distance: float = 1.1
 var _held_radius: float = 0.0
+var _held_center := Vector3.ZERO
+var _held_points: Array[Vector3] = []
+var _held_shapes: Array[Dictionary] = []
 var _rotation_target := Quaternion.IDENTITY
 var _saved_angular_damp: float = 0.0
 var _obstructed_time: float = 0.0
@@ -47,13 +50,15 @@ var _interact_requested: bool = false
 var _throw_requested: bool = false
 var _released_bodies: Array[RigidBody3D] = []
 var _thrown_bodies: Array[RigidBody3D] = []
-var _throw_motion := PhysicsTestMotionParameters3D.new()
-var _throw_result := PhysicsTestMotionResult3D.new()
+var _motion_sweep := PropMotionSweep.new()
+var _rest := PropRest.new()
 var _gravity: float = float(ProjectSettings.get_setting("physics/3d/default_gravity"))
 
 
 func _ready() -> void:
 	_throw_rng.randomize()
+	_rest.grabber = self
+	add_child(_rest)
 
 
 func _notification(what: int) -> void:
@@ -132,7 +137,10 @@ func try_pick_up() -> void:
 	var body := hit.get("collider") as RigidBody3D
 	if body == null or body.freeze or not body.is_in_group("grabbable"):
 		return
-	_held_radius = _body_radius(body)
+	# Hold around collision geometry, not an arbitrary scene pivot (e.g. feet).
+	_cache_hold_bounds(body)
+	if _overlaps_player(body):
+		return
 	var capsule := player_shape.shape as CapsuleShape3D
 	_minimum_distance = maxf(min_hold_distance, _held_radius + capsule.radius + 0.1)
 	if _minimum_distance > max_hold_distance:
@@ -143,6 +151,8 @@ func try_pick_up() -> void:
 	held_body = body
 	_thrown_bodies.erase(body)
 	_released_bodies.erase(body)
+	if body is ImpactDebris:
+		body.set_held(true) # Cache flight damping, never temporary rest damping.
 	_saved_angular_damp = body.angular_damp
 	body.angular_damp = maxf(body.angular_damp, 3.0)
 	body.add_collision_exception_with(player)
@@ -160,6 +170,10 @@ func release(throw_held: bool = false, charge_seconds: float = 0.4) -> void:
 	var body := held_body
 	held_body = null
 	body.angular_damp = _saved_angular_damp
+	if body is ImpactDebris:
+		body.set_held(false)
+	body.sleeping = false
+	_rest.track_awake(body)
 	# Restore collision only after separation, never inside the player's capsule.
 	_released_bodies.append(body)
 	if throw_held:
@@ -208,39 +222,54 @@ func _update_thrown_bodies(delta: float) -> void:
 
 
 func _limit_throw_motion(body: RigidBody3D, delta: float) -> void:
-	# Godot Physics CCD uses support-point rays, which can miss thin furniture
-	# between the rays. Sweep all body shapes during the fast part of a throw.
-	# No transform writes, persistent prop callbacks, or change to free-flight speed.
-	_throw_motion.from = body.global_transform
-	# Read the current solver velocity, including this tick's launch change.
 	var velocity: Vector3 = PhysicsServer3D.body_get_state(body.get_rid(), PhysicsServer3D.BODY_STATE_LINEAR_VELOCITY)
-	_throw_motion.motion = velocity * delta
-	_throw_motion.margin = 0.001
-	_throw_motion.exclude_bodies = [player.get_rid()]
-	if PhysicsServer3D.body_test_motion(body.get_rid(), _throw_motion, _throw_result):
-		# Leave a tiny contact overlap so the normal solver supplies bounce/friction.
-		var travel := _throw_result.get_collision_unsafe_fraction() * _throw_motion.motion.length()
-		var speed := minf(velocity.length(), (travel + 0.001) / delta)
-		body.linear_velocity = velocity.normalized() * speed
+	body.linear_velocity = _motion_sweep.limit_velocity(body, velocity, delta, [player.get_rid()])
 
 
 func _update_hold(delta: float) -> void:
 	var forward := -camera.global_basis.z
+	var center := held_body.to_global(_held_center)
+	# A safe target alone is insufficient: the real body can lag into the player
+	# while walking/turning, or be underneath their feet. Stop driving it then.
+	if _overlaps_player(held_body):
+		release()
+		return
 	var target_distance := current_hold_distance
+	var target := camera.global_position + forward * target_distance
 	var wall := _ray(camera.global_position + forward * (target_distance + _held_radius), held_body)
 	if not wall.is_empty():
 		var distance := camera.global_position.distance_to(wall["position"])
-		target_distance = minf(target_distance, distance - _held_radius - 0.05)
-	var target := camera.global_position + forward * target_distance
+		# Clearance along the actual hit plane, including rotated compound props.
+		# A bounding sphere overestimates a flat object's height above the floor.
+		var normal: Vector3 = wall.normal
+		var extent := 0.0
+		for point in _held_points:
+			extent = maxf(extent, -normal.dot(held_body.global_basis * (point - _held_center)))
+		if normal.y > 0.5:
+			# Lift the target clear of its support instead of pulling a floor prop
+			# back into the player's feet when looking steeply downward.
+			target += normal * maxf(0.0, extent + 0.05 - normal.dot(target - wall.position))
+		else:
+			# Preserve the existing conservative clearance against walls/ceilings.
+			target_distance = minf(target_distance, distance - _held_radius - 0.05)
+			if target_distance < _minimum_distance:
+				release()
+				return
+			target = camera.global_position + forward * target_distance
 	# If there is no safe space, let go instead of retracting through the player.
-	if target_distance < _minimum_distance or not _clear_of_player(target):
+	# The wheel's preferred minimum is not a minimum for floor-shortened holds.
+	if target_distance < 0.15 or not _clear_of_player(target):
 		release()
 		return
-	if forward.dot(held_body.global_position - camera.global_position) < 0.15:
+	if forward.dot(center - camera.global_position) < 0.15:
 		release()
 		return
-	var offset := target - held_body.global_position
-	var blocked := not _ray(held_body.global_position, held_body).is_empty()
+	var offset := target - center
+	# Do not pull an off-axis body across the player's capsule while turning.
+	if not _path_clear_of_player(offset):
+		release()
+		return
+	var blocked := not _ray(center, held_body).is_empty()
 	_obstructed_time = _obstructed_time + delta if blocked else 0.0
 	if offset.length() > break_distance or _obstructed_time > 0.25:
 		release()
@@ -291,13 +320,63 @@ func _body_radius(body: RigidBody3D) -> float:
 	return radius
 
 
+func _cache_hold_bounds(body: RigidBody3D) -> void:
+	var points: Array[Vector3] = []
+	_held_shapes.clear()
+	for owner_id: int in body.get_shape_owners():
+		if body.is_shape_owner_disabled(owner_id):
+			continue
+		for index in body.shape_owner_get_shape_count(owner_id):
+			var shape := body.shape_owner_get_shape(owner_id, index)
+			_held_shapes.append({"shape": shape, "transform": body.shape_owner_get_transform(owner_id)})
+			var bounds := shape.get_debug_mesh().get_aabb()
+			for corner in 8:
+				points.append(body.shape_owner_get_transform(owner_id) * bounds.get_endpoint(corner))
+	var bounds := AABB(points[0], Vector3.ZERO)
+	for point in points:
+		bounds = bounds.expand(point)
+	_held_center = bounds.get_center()
+	_held_radius = bounds.size.length() * 0.5
+	_held_points = points
+
+
+func _overlaps_player(body: RigidBody3D) -> bool:
+	var query := PhysicsShapeQueryParameters3D.new()
+	query.shape = player_shape.shape
+	query.transform = player_shape.global_transform
+	query.margin = 0.06
+	query.collision_mask = 4
+	for hit in get_world_3d().direct_space_state.intersect_shape(query, 64):
+		if hit.collider == body:
+			return true
+	return false
+
+
 func _clear_of_player(target: Vector3) -> bool:
-	var capsule := player_shape.shape as CapsuleShape3D
-	var half_segment := capsule.height * 0.5 - capsule.radius
-	var top := player_shape.to_global(Vector3.UP * half_segment)
-	var bottom := player_shape.to_global(Vector3.DOWN * half_segment)
-	var closest := Geometry3D.get_closest_point_to_segment(target, top, bottom)
-	return target.distance_to(closest) >= _held_radius + capsule.radius + 0.08
+	var offset := target - held_body.to_global(_held_center)
+	for entry in _held_shapes:
+		var query := PhysicsShapeQueryParameters3D.new()
+		query.shape = entry.shape
+		query.transform = held_body.global_transform * entry.transform
+		query.transform.origin += offset
+		query.margin = 0.08
+		query.collision_mask = 2
+		if not get_world_3d().direct_space_state.intersect_shape(query, 1).is_empty():
+			return false
+	return true
+
+
+func _path_clear_of_player(offset: Vector3) -> bool:
+	for entry in _held_shapes:
+		var query := PhysicsShapeQueryParameters3D.new()
+		query.shape = entry.shape
+		query.transform = held_body.global_transform * entry.transform
+		query.motion = offset
+		query.margin = 0.04
+		query.collision_mask = 2
+		if get_world_3d().direct_space_state.cast_motion(query)[0] < 1.0:
+			return false
+	return true
 
 
 func _ray(end: Vector3, ignored: RigidBody3D = null) -> Dictionary:

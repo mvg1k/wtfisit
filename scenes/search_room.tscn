@@ -1,9 +1,15 @@
-[gd_scene load_steps=159 format=3]
+[gd_scene load_steps=165 format=3]
 
 [ext_resource type="Script" path="res://scripts/search_room.gd" id="1"]
 [ext_resource type="PackedScene" path="res://scenes/player.tscn" id="2"]
 [ext_resource type="Script" path="res://scripts/search_spot.gd" id="3"]
 [ext_resource type="PackedScene" path="res://scenes/debug_overlay.tscn" id="4"]
+[ext_resource type="PackedScene" path="res://scenes/props/ceramic_prop.tscn" id="5"]
+[ext_resource type="PackedScene" path="res://scenes/props/glass_prop.tscn" id="6"]
+[ext_resource type="PackedScene" path="res://scenes/props/plastic_prop.tscn" id="7"]
+[ext_resource type="PackedScene" path="res://scenes/props/metal_prop.tscn" id="8"]
+[ext_resource type="PackedScene" path="res://scenes/props/monitor.tscn" id="9"]
+[ext_resource type="PackedScene" path="res://scenes/props/wood_prop.tscn" id="10"]
 
 [sub_resource type="StandardMaterial3D" id="Wall"]
 albedo_color = Color(0.61, 0.62, 0.63, 1)
@@ -954,79 +960,60 @@ cast_shadow = 1
 position = Vector3(0, 0, 0)
 shape = SubResource("DeskLeg3Shape")
 
-[node name="BedsideTop" type="StaticBody3D" parent="."]
-position = Vector3(-2, 0.7, 2.2)
-collision_layer = 1
-collision_mask = 6
+[node name="BedsideTable" type="RigidBody3D" parent="." groups=["grabbable"]]
+position = Vector3(-2, 0.385, 2.2)
+collision_layer = 4
+collision_mask = 7
+mass = 4
+physics_material_override = SubResource("PropPhysics")
+continuous_cd = true
+linear_damp = 0.15
+angular_damp = 0.4
 
 
-[node name="BedsideTopMesh" type="MeshInstance3D" parent="BedsideTop"]
-position = Vector3(0, 0, 0)
+[node name="BedsideTopMesh" type="MeshInstance3D" parent="BedsideTable"]
+position = Vector3(0, 0.315, 0)
 mesh = SubResource("BedsideTopMesh")
 cast_shadow = 1
 
-[node name="BedsideTopCollision" type="CollisionShape3D" parent="BedsideTop"]
-position = Vector3(0, 0, 0)
+[node name="BedsideTopCollision" type="CollisionShape3D" parent="BedsideTable"]
+position = Vector3(0, 0.315, 0)
 shape = SubResource("BedsideTopShape")
 
-[node name="BedsideLeg0" type="StaticBody3D" parent="."]
-position = Vector3(-2.3, 0.31499999999999995, 1.9000000000000001)
-collision_layer = 1
-collision_mask = 6
-
-
-[node name="BedsideLeg0Mesh" type="MeshInstance3D" parent="BedsideLeg0"]
-position = Vector3(0, 0, 0)
+[node name="BedsideLeg0Mesh" type="MeshInstance3D" parent="BedsideTable"]
+position = Vector3(-0.3, -0.07, -0.3)
 mesh = SubResource("BedsideLeg0Mesh")
 cast_shadow = 1
 
-[node name="BedsideLeg0Collision" type="CollisionShape3D" parent="BedsideLeg0"]
-position = Vector3(0, 0, 0)
+[node name="BedsideLeg0Collision" type="CollisionShape3D" parent="BedsideTable"]
+position = Vector3(-0.3, -0.07, -0.3)
 shape = SubResource("BedsideLeg0Shape")
 
-[node name="BedsideLeg1" type="StaticBody3D" parent="."]
-position = Vector3(-1.7, 0.31499999999999995, 1.9000000000000001)
-collision_layer = 1
-collision_mask = 6
-
-
-[node name="BedsideLeg1Mesh" type="MeshInstance3D" parent="BedsideLeg1"]
-position = Vector3(0, 0, 0)
+[node name="BedsideLeg1Mesh" type="MeshInstance3D" parent="BedsideTable"]
+position = Vector3(0.3, -0.07, -0.3)
 mesh = SubResource("BedsideLeg1Mesh")
 cast_shadow = 1
 
-[node name="BedsideLeg1Collision" type="CollisionShape3D" parent="BedsideLeg1"]
-position = Vector3(0, 0, 0)
+[node name="BedsideLeg1Collision" type="CollisionShape3D" parent="BedsideTable"]
+position = Vector3(0.3, -0.07, -0.3)
 shape = SubResource("BedsideLeg1Shape")
 
-[node name="BedsideLeg2" type="StaticBody3D" parent="."]
-position = Vector3(-2.3, 0.31499999999999995, 2.5)
-collision_layer = 1
-collision_mask = 6
-
-
-[node name="BedsideLeg2Mesh" type="MeshInstance3D" parent="BedsideLeg2"]
-position = Vector3(0, 0, 0)
+[node name="BedsideLeg2Mesh" type="MeshInstance3D" parent="BedsideTable"]
+position = Vector3(-0.3, -0.07, 0.3)
 mesh = SubResource("BedsideLeg2Mesh")
 cast_shadow = 1
 
-[node name="BedsideLeg2Collision" type="CollisionShape3D" parent="BedsideLeg2"]
-position = Vector3(0, 0, 0)
+[node name="BedsideLeg2Collision" type="CollisionShape3D" parent="BedsideTable"]
+position = Vector3(-0.3, -0.07, 0.3)
 shape = SubResource("BedsideLeg2Shape")
 
-[node name="BedsideLeg3" type="StaticBody3D" parent="."]
-position = Vector3(-1.7, 0.31499999999999995, 2.5)
-collision_layer = 1
-collision_mask = 6
-
-
-[node name="BedsideLeg3Mesh" type="MeshInstance3D" parent="BedsideLeg3"]
-position = Vector3(0, 0, 0)
+[node name="BedsideLeg3Mesh" type="MeshInstance3D" parent="BedsideTable"]
+position = Vector3(0.3, -0.07, 0.3)
 mesh = SubResource("BedsideLeg3Mesh")
 cast_shadow = 1
 
-[node name="BedsideLeg3Collision" type="CollisionShape3D" parent="BedsideLeg3"]
-position = Vector3(0, 0, 0)
+[node name="BedsideLeg3Collision" type="CollisionShape3D" parent="BedsideTable"]
+position = Vector3(0.3, -0.07, 0.3)
 shape = SubResource("BedsideLeg3Shape")
 
 [node name="Wardrobe" type="StaticBody3D" parent="."]
@@ -1633,6 +1620,24 @@ position = Vector3(0, 0.02, 5.4)
 [node name="DebugOverlay" parent="Sandbox" node_paths=PackedStringArray("grabber") instance=ExtResource("4")]
 grabber = NodePath("../Player/Grabber")
 debug_visible = false
+
+[node name="CeramicVase" parent="." instance=ExtResource("5")]
+position = Vector3(1.8, 0.23, 4.4)
+
+[node name="GlassBottle" parent="." instance=ExtResource("6")]
+position = Vector3(-1.6, 0.29, 4.6)
+
+[node name="PlasticBlock" parent="." instance=ExtResource("7")]
+position = Vector3(2.6, 0.16, 4.6)
+
+[node name="MetalWeight" parent="." instance=ExtResource("8")]
+position = Vector3(0.9, 0.185, 4.6)
+
+[node name="Monitor" parent="." instance=ExtResource("9")]
+position = Vector3(-2.95, 1.26, -3.5)
+
+[node name="WoodBlock" parent="." instance=ExtResource("10")]
+position = Vector3(-2.4, 0.135, 5.5)
 
 [node name="SearchSpots" type="Node3D" parent="."]
 

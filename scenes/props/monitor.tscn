@@ -1,0 +1,174 @@
+[gd_scene load_steps=17 format=3]
+[ext_resource type="Script" path="res://scripts/impact_body.gd" id="1"]
+[ext_resource type="Resource" path="res://resources/materials/electronic.tres" id="2"]
+[sub_resource type="PhysicsMaterial" id="Contact"]
+friction = 0.85
+bounce = 0.02
+[sub_resource type="StandardMaterial3D" id="Housing"]
+albedo_color = Color(0.18, 0.20, 0.23, 1)
+[sub_resource type="StandardMaterial3D" id="On"]
+albedo_color = Color(0.4, 0.75, 0.78, 1)
+emission_enabled = true
+emission = Color(0.12, 0.26, 0.28, 1)
+[sub_resource type="StandardMaterial3D" id="Cracked"]
+albedo_color = Color(0.16, 0.30, 0.34, 1)
+[sub_resource type="StandardMaterial3D" id="Dead"]
+albedo_color = Color(0.025, 0.03, 0.035, 1)
+[sub_resource type="StandardMaterial3D" id="CrackLine"]
+albedo_color = Color(0.75, 0.86, 0.88, 1)
+[sub_resource type="BoxMesh" id="ScreenMesh"]
+size = Vector3(1.2, 0.7, 0.2)
+material = SubResource("Housing")
+[sub_resource type="BoxShape3D" id="ScreenShape"]
+size = Vector3(1.2, 0.7, 0.27)
+[sub_resource type="BoxMesh" id="StandMesh"]
+size = Vector3(0.16, 0.35, 0.16)
+material = SubResource("Housing")
+[sub_resource type="BoxShape3D" id="StandShape"]
+size = Vector3(0.16, 0.35, 0.16)
+[sub_resource type="BoxMesh" id="FootMesh"]
+size = Vector3(0.65, 0.08, 0.45)
+material = SubResource("Housing")
+[sub_resource type="BoxShape3D" id="FootShape"]
+size = Vector3(0.65, 0.08, 0.45)
+[sub_resource type="BoxMesh" id="CrackMesh"]
+size = Vector3(1, 0.005, 0.003)
+material = SubResource("CrackLine")
+[sub_resource type="BoxMesh" id="DisplayMesh"]
+size = Vector3(1.04, 0.55, 0.018)
+[node name="Monitor" type="RigidBody3D" node_paths=PackedStringArray("intact_visual", "cracked_visual", "broken_visual") groups=["grabbable", "impact_props"]]
+collision_layer = 4
+collision_mask = 7
+mass = 5.0
+physics_material_override = SubResource("Contact")
+continuous_cd = true
+linear_damp = 0.15
+angular_damp = 0.4
+script = ExtResource("1")
+impact_material = ExtResource("2")
+intact_visual = NodePath("Intact")
+cracked_visual = NodePath("Cracked")
+broken_visual = NodePath("Broken")
+[node name="Screen" type="MeshInstance3D" parent="."]
+position = Vector3(0, 0.7, 0)
+mesh = SubResource("ScreenMesh")
+[node name="ScreenCollision" type="CollisionShape3D" parent="."]
+position = Vector3(0, 0.7, 0)
+shape = SubResource("ScreenShape")
+[node name="Stand" type="MeshInstance3D" parent="."]
+position = Vector3(0, 0.22, 0)
+mesh = SubResource("StandMesh")
+[node name="StandCollision" type="CollisionShape3D" parent="."]
+position = Vector3(0, 0.22, 0)
+shape = SubResource("StandShape")
+[node name="Foot" type="MeshInstance3D" parent="."]
+position = Vector3(0, 0.04, 0)
+mesh = SubResource("FootMesh")
+[node name="FootCollision" type="CollisionShape3D" parent="."]
+position = Vector3(0, 0.04, 0)
+shape = SubResource("FootShape")
+[node name="Intact" type="MeshInstance3D" parent="."]
+position = Vector3(0, 0.7, 0.112)
+mesh = SubResource("DisplayMesh")
+material_override = SubResource("On")
+[node name="Cracked" type="Node3D" parent="."]
+visible = false
+[node name="Display" type="MeshInstance3D" parent="Cracked"]
+position = Vector3(0, 0.7, 0.112)
+mesh = SubResource("DisplayMesh")
+material_override = SubResource("Cracked")
+[node name="Crack0" type="MeshInstance3D" parent="Cracked"]
+position = Vector3(0.039999999999999994, 0.7849999999999999, 0.124)
+rotation = Vector3(0, 0, 2.5393053074548293)
+scale = Vector3(0.19416487838947596, 1, 1)
+mesh = SubResource("CrackMesh")
+[node name="Crack1" type="MeshInstance3D" parent="Cracked"]
+position = Vector3(-0.125, 0.85, 0.124)
+rotation = Vector3(0, 0, 3.024483909022929)
+scale = Vector3(0.1711724276862369, 1, 1)
+mesh = SubResource("CrackMesh")
+[node name="Crack2" type="MeshInstance3D" parent="Cracked"]
+position = Vector3(-0.285, 0.913, 0.124)
+rotation = Vector3(0, 0, 2.5264064154778194)
+scale = Vector3(0.1836736235827017, 1, 1)
+mesh = SubResource("CrackMesh")
+[node name="Crack3" type="MeshInstance3D" parent="Cracked"]
+position = Vector3(0.21, 0.765, 0.124)
+rotation = Vector3(0, 0, 0.3708912888126627)
+scale = Vector3(0.19313207915827965, 1, 1)
+mesh = SubResource("CrackMesh")
+[node name="Crack4" type="MeshInstance3D" parent="Cracked"]
+position = Vector3(0.38, 0.79, 0.124)
+rotation = Vector3(0, 0, -0.12435499454676152)
+scale = Vector3(0.16124515496597103, 1, 1)
+mesh = SubResource("CrackMesh")
+[node name="Crack5" type="MeshInstance3D" parent="Cracked"]
+position = Vector3(0.32, 0.875, 0.124)
+rotation = Vector3(0, 0, 1.3101939350475553)
+scale = Vector3(0.15524174696260018, 1, 1)
+mesh = SubResource("CrackMesh")
+[node name="Crack6" type="MeshInstance3D" parent="Cracked"]
+position = Vector3(0.15, 0.645, 0.124)
+rotation = Vector3(0, 0, -1.2315037123408519)
+scale = Vector3(0.18027756377319942, 1, 1)
+mesh = SubResource("CrackMesh")
+[node name="Crack7" type="MeshInstance3D" parent="Cracked"]
+position = Vector3(0.135, 0.499, 0.124)
+rotation = Vector3(0, 0, -2.2063820336194473)
+scale = Vector3(0.15160474926597783, 1, 1)
+mesh = SubResource("CrackMesh")
+[node name="Crack8" type="MeshInstance3D" parent="Cracked"]
+position = Vector3(0.28, 0.535, 0.124)
+rotation = Vector3(0, 0, -0.24497866312686434)
+scale = Vector3(0.20615528128088303, 1, 1)
+mesh = SubResource("CrackMesh")
+[node name="Crack9" type="MeshInstance3D" parent="Cracked"]
+position = Vector3(-0.0050000000000000044, 0.69, 0.124)
+rotation = Vector3(0, 0, -2.831889709047337)
+scale = Vector3(0.26248809496813374, 1, 1)
+mesh = SubResource("CrackMesh")
+[node name="Crack10" type="MeshInstance3D" parent="Cracked"]
+position = Vector3(-0.19, 0.5800000000000001, 0.124)
+rotation = Vector3(0, 0, -2.279422598922567)
+scale = Vector3(0.18439088914585774, 1, 1)
+mesh = SubResource("CrackMesh")
+[node name="Crack11" type="MeshInstance3D" parent="Cracked"]
+position = Vector3(-0.305, 0.635, 0.124)
+rotation = Vector3(0, 0, -3.0560873599115883)
+scale = Vector3(0.35128336140500593, 1, 1)
+mesh = SubResource("CrackMesh")
+[node name="Crack12" type="MeshInstance3D" parent="Cracked"]
+position = Vector3(0.075, 0.725, 0.124)
+rotation = Vector3(0, 0, -3.0309354324158977)
+scale = Vector3(0.09055385138137416, 0.65, 1)
+mesh = SubResource("CrackMesh")
+[node name="Crack13" type="MeshInstance3D" parent="Cracked"]
+position = Vector3(0.045, 0.75, 0.124)
+rotation = Vector3(0, 0, 1.1071487177940909)
+scale = Vector3(0.06708203932499374, 0.65, 1)
+mesh = SubResource("CrackMesh")
+[node name="Crack14" type="MeshInstance3D" parent="Cracked"]
+position = Vector3(0.105, 0.785, 0.124)
+rotation = Vector3(0, 0, 0.11065722117389575)
+scale = Vector3(0.09055385138137416, 0.65, 1)
+mesh = SubResource("CrackMesh")
+[node name="Crack15" type="MeshInstance3D" parent="Cracked"]
+position = Vector3(0.16999999999999998, 0.76, 0.124)
+rotation = Vector3(0, 0, -0.9827937232473294)
+scale = Vector3(0.07211102550927984, 0.65, 1)
+mesh = SubResource("CrackMesh")
+[node name="Crack16" type="MeshInstance3D" parent="Cracked"]
+position = Vector3(0.165, 0.7, 0.124)
+rotation = Vector3(0, 0, -2.2655346029916004)
+scale = Vector3(0.0781024967590665, 0.65, 1)
+mesh = SubResource("CrackMesh")
+[node name="Crack17" type="MeshInstance3D" parent="Cracked"]
+position = Vector3(0.085, 0.6950000000000001, 0.124)
+rotation = Vector3(0, 0, 2.714965160462918)
+scale = Vector3(0.12083045973594571, 0.65, 1)
+mesh = SubResource("CrackMesh")
+[node name="Broken" type="MeshInstance3D" parent="."]
+visible = false
+position = Vector3(0, 0.7, 0.112)
+mesh = SubResource("DisplayMesh")
+material_override = SubResource("Dead")
