@@ -1,0 +1,148 @@
+[gd_scene load_steps=22 format=3]
+
+[ext_resource type="Material" path="res://resources/layout/wood.tres" id="wood"]
+[ext_resource type="Material" path="res://resources/layout/bedding.tres" id="bedding"]
+[ext_resource type="Material" path="res://resources/layout/fabric.tres" id="fabric"]
+
+; Support faces have a 1 cm collision skin for Godot Physics contact tolerance.
+; Mesh dimensions and support undersides stay unchanged.
+
+[sub_resource type="BoxMesh" id="FrameMesh"]
+size = Vector3(1.35, 0.12, 2.15)
+material = ExtResource("wood")
+
+[sub_resource type="BoxShape3D" id="FrameShape"]
+size = Vector3(1.35, 0.13, 2.15)
+
+[sub_resource type="BoxMesh" id="MattressMesh"]
+size = Vector3(1.31, 0.14, 2.08)
+material = ExtResource("bedding")
+
+[sub_resource type="BoxShape3D" id="MattressShape"]
+size = Vector3(1.31, 0.15, 2.08)
+
+[sub_resource type="BoxMesh" id="BlanketMesh"]
+size = Vector3(1.32, 0.025, 1.35)
+material = ExtResource("fabric")
+
+[sub_resource type="BoxShape3D" id="BlanketShape"]
+size = Vector3(1.32, 0.035, 1.35)
+
+[sub_resource type="BoxMesh" id="PillowMesh"]
+size = Vector3(0.65, 0.09, 0.36)
+material = ExtResource("bedding")
+
+[sub_resource type="BoxShape3D" id="PillowShape"]
+size = Vector3(0.65, 0.1, 0.36)
+
+[sub_resource type="BoxMesh" id="HeadboardMesh"]
+size = Vector3(1.39, 0.92, 0.06)
+material = ExtResource("wood")
+
+[sub_resource type="BoxShape3D" id="HeadboardShape"]
+size = Vector3(1.39, 0.92, 0.06)
+
+[sub_resource type="BoxMesh" id="LegLHeadMesh"]
+size = Vector3(0.09, 0.52, 0.09)
+material = ExtResource("wood")
+
+[sub_resource type="BoxShape3D" id="LegLHeadShape"]
+size = Vector3(0.09, 0.52, 0.09)
+
+[sub_resource type="BoxMesh" id="LegLFootMesh"]
+size = Vector3(0.09, 0.52, 0.09)
+material = ExtResource("wood")
+
+[sub_resource type="BoxShape3D" id="LegLFootShape"]
+size = Vector3(0.09, 0.52, 0.09)
+
+[sub_resource type="BoxMesh" id="LegRHeadMesh"]
+size = Vector3(0.09, 0.52, 0.09)
+material = ExtResource("wood")
+
+[sub_resource type="BoxShape3D" id="LegRHeadShape"]
+size = Vector3(0.09, 0.52, 0.09)
+
+[sub_resource type="BoxMesh" id="LegRFootMesh"]
+size = Vector3(0.09, 0.52, 0.09)
+material = ExtResource("wood")
+
+[sub_resource type="BoxShape3D" id="LegRFootShape"]
+size = Vector3(0.09, 0.52, 0.09)
+
+[node name="Bed" type="StaticBody3D"]
+collision_layer = 1
+collision_mask = 6
+
+
+[node name="Frame" type="MeshInstance3D" parent="."]
+position = Vector3(0, 0.58, 0)
+mesh = SubResource("FrameMesh")
+
+[node name="FrameCollision" type="CollisionShape3D" parent="."]
+position = Vector3(0, 0.585, 0)
+shape = SubResource("FrameShape")
+
+[node name="Mattress" type="MeshInstance3D" parent="."]
+position = Vector3(0, 0.71, 0)
+mesh = SubResource("MattressMesh")
+
+[node name="MattressCollision" type="CollisionShape3D" parent="."]
+position = Vector3(0, 0.715, 0)
+shape = SubResource("MattressShape")
+
+[node name="Blanket" type="MeshInstance3D" parent="."]
+position = Vector3(0, 0.792, 0.3)
+mesh = SubResource("BlanketMesh")
+
+[node name="BlanketCollision" type="CollisionShape3D" parent="."]
+position = Vector3(0, 0.797, 0.3)
+shape = SubResource("BlanketShape")
+
+[node name="Pillow" type="MeshInstance3D" parent="."]
+position = Vector3(0, 0.825, -0.76)
+mesh = SubResource("PillowMesh")
+
+[node name="PillowCollision" type="CollisionShape3D" parent="."]
+position = Vector3(0, 0.83, -0.76)
+shape = SubResource("PillowShape")
+
+[node name="Headboard" type="MeshInstance3D" parent="."]
+position = Vector3(0, 0.46, -1.06)
+mesh = SubResource("HeadboardMesh")
+
+[node name="HeadboardCollision" type="CollisionShape3D" parent="."]
+position = Vector3(0, 0.46, -1.06)
+shape = SubResource("HeadboardShape")
+
+[node name="LegLHead" type="MeshInstance3D" parent="."]
+position = Vector3(-0.57, 0.26, -0.93)
+mesh = SubResource("LegLHeadMesh")
+
+[node name="LegLHeadCollision" type="CollisionShape3D" parent="."]
+position = Vector3(-0.57, 0.26, -0.93)
+shape = SubResource("LegLHeadShape")
+
+[node name="LegLFoot" type="MeshInstance3D" parent="."]
+position = Vector3(-0.57, 0.26, 0.93)
+mesh = SubResource("LegLFootMesh")
+
+[node name="LegLFootCollision" type="CollisionShape3D" parent="."]
+position = Vector3(-0.57, 0.26, 0.93)
+shape = SubResource("LegLFootShape")
+
+[node name="LegRHead" type="MeshInstance3D" parent="."]
+position = Vector3(0.57, 0.26, -0.93)
+mesh = SubResource("LegRHeadMesh")
+
+[node name="LegRHeadCollision" type="CollisionShape3D" parent="."]
+position = Vector3(0.57, 0.26, -0.93)
+shape = SubResource("LegRHeadShape")
+
+[node name="LegRFoot" type="MeshInstance3D" parent="."]
+position = Vector3(0.57, 0.26, 0.93)
+mesh = SubResource("LegRFootMesh")
+
+[node name="LegRFootCollision" type="CollisionShape3D" parent="."]
+position = Vector3(0.57, 0.26, 0.93)
+shape = SubResource("LegRFootShape")

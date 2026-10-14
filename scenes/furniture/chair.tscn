@@ -1,0 +1,116 @@
+[gd_scene load_steps=16 format=3]
+
+[ext_resource type="Material" path="res://resources/layout/fabric.tres" id="fabric"]
+[ext_resource type="Material" path="res://resources/layout/dark.tres" id="dark"]
+
+; Support faces have a 1 cm collision skin for Godot Physics contact tolerance.
+; Mesh dimensions and support undersides stay unchanged.
+; Dynamic furniture soles also have a 1 cm downward skin.
+
+[sub_resource type="BoxMesh" id="SeatMesh"]
+size = Vector3(0.52, 0.08, 0.5)
+material = ExtResource("fabric")
+
+[sub_resource type="BoxShape3D" id="SeatShape"]
+size = Vector3(0.52, 0.09, 0.5)
+
+[sub_resource type="BoxMesh" id="BackMesh"]
+size = Vector3(0.52, 0.58, 0.08)
+material = ExtResource("fabric")
+
+[sub_resource type="BoxShape3D" id="BackShape"]
+size = Vector3(0.52, 0.58, 0.08)
+
+[sub_resource type="BoxMesh" id="LegLFrontMesh"]
+size = Vector3(0.045, 0.42, 0.045)
+material = ExtResource("dark")
+
+[sub_resource type="BoxShape3D" id="LegLFrontShape"]
+size = Vector3(0.045, 0.43, 0.045)
+
+[sub_resource type="BoxMesh" id="LegLBackMesh"]
+size = Vector3(0.045, 0.42, 0.045)
+material = ExtResource("dark")
+
+[sub_resource type="BoxShape3D" id="LegLBackShape"]
+size = Vector3(0.045, 0.43, 0.045)
+
+[sub_resource type="BoxMesh" id="LegRFrontMesh"]
+size = Vector3(0.045, 0.42, 0.045)
+material = ExtResource("dark")
+
+[sub_resource type="BoxShape3D" id="LegRFrontShape"]
+size = Vector3(0.045, 0.43, 0.045)
+
+[sub_resource type="BoxMesh" id="LegRBackMesh"]
+size = Vector3(0.045, 0.42, 0.045)
+material = ExtResource("dark")
+
+[sub_resource type="BoxShape3D" id="LegRBackShape"]
+size = Vector3(0.045, 0.43, 0.045)
+
+[sub_resource type="PhysicsMaterial" id="FurnitureContact"]
+friction = 0.65
+bounce = 0.0
+
+[node name="Chair" type="RigidBody3D" groups=["grabbable"]]
+collision_layer = 4
+collision_mask = 7
+mass = 8.0
+physics_material_override = SubResource("FurnitureContact")
+center_of_mass_mode = 1
+center_of_mass = Vector3(0, 0.43, 0.035)
+continuous_cd = true
+max_contacts_reported = 4
+linear_damp = 0.15
+angular_damp = 0.4
+can_sleep = true
+
+
+[node name="Seat" type="MeshInstance3D" parent="."]
+position = Vector3(0, 0.46, 0)
+mesh = SubResource("SeatMesh")
+
+[node name="SeatCollision" type="CollisionShape3D" parent="."]
+position = Vector3(0, 0.465, 0)
+shape = SubResource("SeatShape")
+
+[node name="Back" type="MeshInstance3D" parent="."]
+position = Vector3(0, 0.79, 0.21)
+mesh = SubResource("BackMesh")
+
+[node name="BackCollision" type="CollisionShape3D" parent="."]
+position = Vector3(0, 0.79, 0.21)
+shape = SubResource("BackShape")
+
+[node name="LegLFront" type="MeshInstance3D" parent="."]
+position = Vector3(-0.21, 0.21, -0.19)
+mesh = SubResource("LegLFrontMesh")
+
+[node name="LegLFrontCollision" type="CollisionShape3D" parent="."]
+position = Vector3(-0.21, 0.205, -0.19)
+shape = SubResource("LegLFrontShape")
+
+[node name="LegLBack" type="MeshInstance3D" parent="."]
+position = Vector3(-0.21, 0.21, 0.19)
+mesh = SubResource("LegLBackMesh")
+
+[node name="LegLBackCollision" type="CollisionShape3D" parent="."]
+position = Vector3(-0.21, 0.205, 0.19)
+shape = SubResource("LegLBackShape")
+
+[node name="LegRFront" type="MeshInstance3D" parent="."]
+position = Vector3(0.21, 0.21, -0.19)
+mesh = SubResource("LegRFrontMesh")
+
+[node name="LegRFrontCollision" type="CollisionShape3D" parent="."]
+position = Vector3(0.21, 0.205, -0.19)
+shape = SubResource("LegRFrontShape")
+
+[node name="LegRBack" type="MeshInstance3D" parent="."]
+position = Vector3(0.21, 0.21, 0.19)
+mesh = SubResource("LegRBackMesh")
+
+[node name="LegRBackCollision" type="CollisionShape3D" parent="."]
+position = Vector3(0.21, 0.205, 0.19)
+shape = SubResource("LegRBackShape")

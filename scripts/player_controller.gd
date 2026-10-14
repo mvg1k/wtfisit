@@ -36,7 +36,15 @@ func _ready() -> void:
 	_capsule = body_shape.shape as CapsuleShape3D
 	# Do not inherit contact jitter as take-off velocity from movable props.
 	platform_on_leave = PLATFORM_ON_LEAVE_DO_NOTHING
+	get_node("/root/GameSettings").changed.connect(_apply_settings)
+	_apply_settings()
 	set_mouse_captured(true)
+
+
+func _apply_settings() -> void:
+	var settings := get_node("/root/GameSettings")
+	mouse_sensitivity = settings.mouse_sensitivity
+	camera.fov = settings.camera_fov
 
 
 func set_mouse_captured(captured: bool) -> void:

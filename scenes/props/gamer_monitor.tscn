@@ -1,0 +1,68 @@
+[gd_scene load_steps=9 format=3]
+
+[ext_resource type="PackedScene" path="res://scenes/props/monitor.tscn" id="base"]
+[ext_resource type="Material" path="res://resources/layout/dark.tres" id="dark"]
+
+[sub_resource type="BoxMesh" id="ScreenMesh"]
+size = Vector3(0.64, 0.36, 0.11)
+material = ExtResource("dark")
+
+; One convex contact manifold prevents screen/base contacts alternating on the floor.
+; Uses the existing outer collision bounds; conservatively fills the stand gaps.
+[sub_resource type="ConvexPolygonShape3D" id="ScreenShape"]
+points = PackedVector3Array(-0.32, -0.055, -0.075, -0.32, -0.055, 0.075, -0.32, 0.305, -0.075, -0.32, 0.305, 0.075, 0.32, -0.055, -0.075, 0.32, -0.055, 0.075, 0.32, 0.305, -0.075, 0.32, 0.305, 0.075, -0.04, -0.285, -0.04, -0.04, -0.285, 0.04, -0.04, -0.065, -0.04, -0.04, -0.065, 0.04, 0.04, -0.285, -0.04, 0.04, -0.285, 0.04, 0.04, -0.065, -0.04, 0.04, -0.065, 0.04, -0.17, -0.305, -0.12, -0.17, -0.305, 0.12, -0.17, -0.265, -0.12, -0.17, -0.265, 0.12, 0.17, -0.305, -0.12, 0.17, -0.305, 0.12, 0.17, -0.265, -0.12, 0.17, -0.265, 0.12)
+
+[sub_resource type="BoxMesh" id="StandMesh"]
+size = Vector3(0.08, 0.22, 0.08)
+material = ExtResource("dark")
+
+[sub_resource type="BoxShape3D" id="StandShape"]
+size = Vector3(0.08, 0.22, 0.08)
+
+[sub_resource type="BoxMesh" id="FootMesh"]
+size = Vector3(0.34, 0.04, 0.24)
+material = ExtResource("dark")
+
+[sub_resource type="BoxShape3D" id="FootShape"]
+size = Vector3(0.34, 0.04, 0.24)
+
+[node name="GamerMonitor" instance=ExtResource("base")]
+
+[node name="Screen" parent="." index="0"]
+position = Vector3(0, 0.43, 0)
+mesh = SubResource("ScreenMesh")
+
+[node name="ScreenCollision" parent="." index="1"]
+; Centre the hull on its bounds; mass moments remain automatic.
+position = Vector3(0, 0.305, 0)
+shape = SubResource("ScreenShape")
+
+[node name="Stand" parent="." index="2"]
+position = Vector3(0, 0.13, 0)
+mesh = SubResource("StandMesh")
+
+[node name="StandCollision" parent="." index="3"]
+position = Vector3(0, 0.13, 0)
+shape = SubResource("StandShape")
+disabled = true
+
+[node name="Foot" parent="." index="4"]
+position = Vector3(0, 0.02, 0)
+mesh = SubResource("FootMesh")
+
+[node name="FootCollision" parent="." index="5"]
+position = Vector3(0, 0.02, 0)
+shape = SubResource("FootShape")
+disabled = true
+
+[node name="Intact" parent="." index="6"]
+position = Vector3(0, 0.43, 0.0616)
+scale = Vector3(0.53, 0.53, 0.55)
+
+[node name="Broken" parent="." index="8"]
+position = Vector3(0, 0.43, 0.0616)
+scale = Vector3(0.53, 0.53, 0.55)
+
+[node name="Cracked" parent="." index="7"]
+position = Vector3(0, 0.059, 0)
+scale = Vector3(0.53, 0.53, 0.55)

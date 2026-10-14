@@ -29,6 +29,10 @@ signal object_picked_up(body: RigidBody3D)
 @export var player_throw_inheritance: float = 0.5
 @export var max_throw_speed: float = 26.0
 @export var max_throw_spin: float = 7.0
+@export var kick_reach: float = 1.35
+@export var kick_impulse: float = 10.0
+@export var kick_max_added_speed: float = 10.0
+@export var kick_cooldown: float = 0.45
 
 var held_body: RigidBody3D
 var is_charging_throw: bool = false
@@ -48,15 +52,19 @@ var _saved_angular_damp: float = 0.0
 var _obstructed_time: float = 0.0
 var _interact_requested: bool = false
 var _throw_requested: bool = false
+var _kick_requested: bool = false
+var _kick_remaining: float = 0.0
 var _released_bodies: Array[RigidBody3D] = []
 var _thrown_bodies: Array[RigidBody3D] = []
 var _motion_sweep := PropMotionSweep.new()
 var _rest := PropRest.new()
+var _kick_foot_shape := SphereShape3D.new()
 var _gravity: float = float(ProjectSettings.get_setting("physics/3d/default_gravity"))
 
 
 func _ready() -> void:
 	_throw_rng.randomize()
+	_kick_foot_shape.radius = 0.06
 	_rest.grabber = self
 	add_child(_rest)
 
@@ -76,7 +84,10 @@ func _unhandled_input(event: InputEvent) -> void:
 		# Also discard input queued earlier this frame: a late LMB release or E
 		# must not throw or immediately pick the dropped prop back up.
 		_interact_requested = false
+		var was_holding := is_instance_valid(held_body)
 		release()
+		# Decide at input time: dropping must never turn into a kick next tick.
+		_kick_requested = not was_holding and _kick_remaining <= 0.0
 		get_viewport().set_input_as_handled()
 		return
 	if is_instance_valid(held_body):
@@ -106,6 +117,7 @@ func _unhandled_input(event: InputEvent) -> void:
 
 
 func _physics_process(delta: float) -> void:
+	_kick_remaining = maxf(0.0, _kick_remaining - delta)
 	_restore_player_collisions()
 	_update_thrown_bodies(delta)
 	if not player.mouse_captured:
@@ -113,7 +125,10 @@ func _physics_process(delta: float) -> void:
 		_interact_requested = false
 		_throw_requested = false
 		return
-	if _interact_requested:
+	if _kick_requested:
+		_kick_requested = false
+		_kick()
+	elif _interact_requested:
 		if is_instance_valid(held_body):
 			release()
 		else:
@@ -162,7 +177,14 @@ func try_pick_up() -> void:
 	object_picked_up.emit(body)
 
 
+func cancel_pending_input() -> void:
+	# Menus cancel queued pickup/kick/throw before freezing the gameplay tree.
+	_interact_requested = false
+	release()
+
+
 func release(throw_held: bool = false, charge_seconds: float = 0.4) -> void:
+	_kick_requested = false
 	_reset_throw_charge()
 	if not is_instance_valid(held_body):
 		held_body = null
@@ -180,6 +202,91 @@ func release(throw_held: bool = false, charge_seconds: float = 0.4) -> void:
 		_apply_throw(body, charge_seconds)
 		_thrown_bodies.append(body)
 		_limit_throw_motion(body, get_physics_process_delta_time())
+
+
+func _kick() -> void:
+	if is_instance_valid(held_body) or _kick_remaining > 0.0 or not player.mouse_captured:
+		return
+	_kick_remaining = kick_cooldown # Misses also consume the kick.
+	var hit := get_kick_target()
+	var body := hit.get("collider") as RigidBody3D
+	if body == null:
+		return
+	var direction := -camera.global_basis.z
+	direction.y = 0.0
+	direction = (direction.normalized() + Vector3.UP * 0.18).normalized()
+	var impulse := direction * minf(kick_impulse, body.mass * kick_max_added_speed)
+	if body is ImpactDebris:
+		body.set_held(false) # Restore flight damping before waking a settled shard.
+	body.sleeping = false
+	_rest.track_awake(body)
+	body.apply_impulse(impulse, hit.position - body.global_position)
+	# Reuse fast-body collision protection; damage still requires an actual
+	# collision through ImpactBody, including its confirmed-sweep handoff.
+	if not _thrown_bodies.has(body):
+		_thrown_bodies.append(body)
+	_limit_throw_motion(body, get_physics_process_delta_time())
+
+
+func get_kick_target() -> Dictionary:
+	# Shared by the kick and opt-in diagnostics; querying never applies an impulse.
+	if is_instance_valid(held_body) or not player.mouse_captured:
+		return {}
+	# The camera selects a surface; the lower-body sphere is only a broad gate.
+	# It cannot establish that a foot can reach that surface from this platform.
+	var origin := player.global_position + Vector3.UP * minf(0.6, camera.position.y)
+	var ray_length := kick_reach + origin.distance_to(camera.global_position)
+	var query := PhysicsRayQueryParameters3D.create(camera.global_position,
+		camera.global_position - camera.global_basis.z * ray_length, 1 | 4)
+	query.exclude = [player.get_rid()]
+	query.hit_from_inside = true
+	var hit := get_world_3d().direct_space_state.intersect_ray(query)
+	var body := hit.get("collider") as RigidBody3D
+	if body == null or body.freeze or origin.distance_to(hit.position) > kick_reach:
+		return {}
+	var capsule := player_shape.shape as CapsuleShape3D
+	var contact_height: float = hit.position.y - player.global_position.y
+	# Do not reach below the current support plane or above a stance-scaled leg
+	# envelope. In particular, looking down from a bed cannot kick floor props.
+	if contact_height < -0.1 or contact_height > capsule.height * 0.65:
+		return {}
+	var horizontal: Vector3 = hit.position - player.global_position
+	horizontal.y = 0.0
+	var forward := -camera.global_basis.z
+	forward.y = 0.0
+	if horizontal.length() < capsule.radius * 0.5 or forward.is_zero_approx() \
+			or horizontal.normalized().dot(forward.normalized()) < 0.5:
+		return {} # No underfoot, backward or sideways contact outside the aim cone.
+	var foot_origin := player.global_position + Vector3.UP * 0.12
+	var foot_distance: float = foot_origin.distance_to(hit.position)
+	if foot_distance > kick_reach:
+		return {}
+	# Visibility alone is insufficient if a low obstacle lies between the leg
+	# and the visible target. Both rays must reach this same body first.
+	query.from = origin
+	query.to = hit.position
+	var obstruction := get_world_3d().direct_space_state.intersect_ray(query)
+	if not obstruction.is_empty() and obstruction.collider != body:
+		return {}
+	# A thin knee ray can clear a low rail even though the foot would hit it.
+	# Sweep a small foot volume from ankle height; lift only the end of tiny
+	# floor contacts so the sole clears the supporting floor. Ignore the selected
+	# target, which the foot is meant to contact, but never its support or neighbours.
+	var foot_end: Vector3 = hit.position
+	foot_end.y = maxf(foot_end.y, player.global_position.y + _kick_foot_shape.radius + 0.01)
+	var foot_query := PhysicsShapeQueryParameters3D.new()
+	foot_query.shape = _kick_foot_shape
+	foot_query.transform = Transform3D(Basis.IDENTITY, foot_origin)
+	foot_query.motion = foot_end - foot_origin
+	foot_query.collision_mask = 1 | 4
+	foot_query.exclude = [player.get_rid(), body.get_rid()]
+	var space := get_world_3d().direct_space_state
+	if not space.intersect_shape(foot_query, 1).is_empty() \
+			or space.cast_motion(foot_query)[0] < 1.0:
+		return {}
+	hit["distance"] = foot_distance
+	hit["contact_height"] = contact_height
+	return hit
 
 
 func _reset_throw_charge() -> void:

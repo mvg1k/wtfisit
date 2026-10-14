@@ -1,0 +1,131 @@
+[gd_scene load_steps=18 format=3]
+
+[ext_resource type="Material" path="res://resources/layout/wood.tres" id="wood"]
+
+; Support faces have a 1 cm collision skin for Godot Physics contact tolerance.
+; Mesh dimensions and support undersides stay unchanged.
+
+[sub_resource type="BoxMesh" id="LeftMesh"]
+size = Vector3(0.05, 1.65, 0.32)
+material = ExtResource("wood")
+
+[sub_resource type="BoxShape3D" id="LeftShape"]
+size = Vector3(0.05, 1.65, 0.32)
+
+[sub_resource type="BoxMesh" id="RightMesh"]
+size = Vector3(0.05, 1.65, 0.32)
+material = ExtResource("wood")
+
+[sub_resource type="BoxShape3D" id="RightShape"]
+size = Vector3(0.05, 1.65, 0.32)
+
+[sub_resource type="BoxMesh" id="BackMesh"]
+size = Vector3(0.9, 1.65, 0.035)
+material = ExtResource("wood")
+
+[sub_resource type="BoxShape3D" id="BackShape"]
+size = Vector3(0.9, 1.65, 0.035)
+
+[sub_resource type="BoxMesh" id="Shelf0Mesh"]
+size = Vector3(0.8, 0.045, 0.32)
+material = ExtResource("wood")
+
+[sub_resource type="BoxShape3D" id="Shelf0Shape"]
+size = Vector3(0.8, 0.055, 0.32)
+
+[sub_resource type="BoxMesh" id="Shelf1Mesh"]
+size = Vector3(0.8, 0.045, 0.32)
+material = ExtResource("wood")
+
+[sub_resource type="BoxShape3D" id="Shelf1Shape"]
+size = Vector3(0.8, 0.055, 0.32)
+
+[sub_resource type="BoxMesh" id="Shelf2Mesh"]
+size = Vector3(0.8, 0.045, 0.32)
+material = ExtResource("wood")
+
+[sub_resource type="BoxShape3D" id="Shelf2Shape"]
+size = Vector3(0.8, 0.055, 0.32)
+
+[sub_resource type="BoxMesh" id="Shelf3Mesh"]
+size = Vector3(0.8, 0.045, 0.32)
+material = ExtResource("wood")
+
+[sub_resource type="BoxShape3D" id="Shelf3Shape"]
+size = Vector3(0.8, 0.055, 0.32)
+
+[sub_resource type="BoxMesh" id="Shelf4Mesh"]
+size = Vector3(0.8, 0.045, 0.32)
+material = ExtResource("wood")
+
+[sub_resource type="BoxShape3D" id="Shelf4Shape"]
+size = Vector3(0.8, 0.055, 0.32)
+
+[node name="Shelves" type="StaticBody3D"]
+collision_layer = 1
+collision_mask = 6
+
+
+[node name="Left" type="MeshInstance3D" parent="."]
+position = Vector3(-0.425, 0.825, 0)
+mesh = SubResource("LeftMesh")
+
+[node name="LeftCollision" type="CollisionShape3D" parent="."]
+position = Vector3(-0.425, 0.825, 0)
+shape = SubResource("LeftShape")
+
+[node name="Right" type="MeshInstance3D" parent="."]
+position = Vector3(0.425, 0.825, 0)
+mesh = SubResource("RightMesh")
+
+[node name="RightCollision" type="CollisionShape3D" parent="."]
+position = Vector3(0.425, 0.825, 0)
+shape = SubResource("RightShape")
+
+[node name="Back" type="MeshInstance3D" parent="."]
+position = Vector3(0, 0.825, -0.1425)
+mesh = SubResource("BackMesh")
+
+[node name="BackCollision" type="CollisionShape3D" parent="."]
+position = Vector3(0, 0.825, -0.1425)
+shape = SubResource("BackShape")
+
+[node name="Shelf0" type="MeshInstance3D" parent="."]
+position = Vector3(0, 0.04, 0)
+mesh = SubResource("Shelf0Mesh")
+
+[node name="Shelf0Collision" type="CollisionShape3D" parent="."]
+position = Vector3(0, 0.045, 0)
+shape = SubResource("Shelf0Shape")
+
+[node name="Shelf1" type="MeshInstance3D" parent="."]
+position = Vector3(0, 0.43, 0)
+mesh = SubResource("Shelf1Mesh")
+
+[node name="Shelf1Collision" type="CollisionShape3D" parent="."]
+position = Vector3(0, 0.435, 0)
+shape = SubResource("Shelf1Shape")
+
+[node name="Shelf2" type="MeshInstance3D" parent="."]
+position = Vector3(0, 0.83, 0)
+mesh = SubResource("Shelf2Mesh")
+
+[node name="Shelf2Collision" type="CollisionShape3D" parent="."]
+position = Vector3(0, 0.835, 0)
+shape = SubResource("Shelf2Shape")
+
+[node name="Shelf3" type="MeshInstance3D" parent="."]
+position = Vector3(0, 1.23, 0)
+mesh = SubResource("Shelf3Mesh")
+
+[node name="Shelf3Collision" type="CollisionShape3D" parent="."]
+position = Vector3(0, 1.235, 0)
+shape = SubResource("Shelf3Shape")
+
+[node name="Shelf4" type="MeshInstance3D" parent="."]
+position = Vector3(0, 1.62, 0)
+mesh = SubResource("Shelf4Mesh")
+
+[node name="Shelf4Collision" type="CollisionShape3D" parent="."]
+position = Vector3(0, 1.625, 0)
+shape = SubResource("Shelf4Shape")

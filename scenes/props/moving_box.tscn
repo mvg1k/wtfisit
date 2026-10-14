@@ -1,0 +1,20 @@
+[gd_scene load_steps=5 format=3]
+
+[ext_resource type="PackedScene" path="res://scenes/props/physics_prop.tscn" id="base"]
+[ext_resource type="Material" path="res://resources/layout/box.tres" id="box"]
+
+[sub_resource type="BoxMesh" id="BoxMesh"]
+size = Vector3(0.48, 0.38, 0.42)
+material = ExtResource("box")
+
+[sub_resource type="BoxShape3D" id="BoxShape"]
+size = Vector3(0.48, 0.38, 0.42)
+
+[node name="MovingBox" instance=ExtResource("base")]
+mass = 1.5
+
+[node name="Mesh" parent="." index="0"]
+mesh = SubResource("BoxMesh")
+
+[node name="Collision" parent="." index="1"]
+shape = SubResource("BoxShape")

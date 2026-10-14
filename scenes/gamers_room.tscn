@@ -1,0 +1,457 @@
+[gd_scene load_steps=67 format=3]
+
+[ext_resource type="Material" path="res://resources/layout/floor.tres" id="floor"]
+[ext_resource type="Material" path="res://resources/layout/trim.tres" id="trim"]
+[ext_resource type="Material" path="res://resources/layout/wall.tres" id="wall"]
+[ext_resource type="Material" path="res://resources/layout/glass.tres" id="glass"]
+[ext_resource type="Material" path="res://resources/layout/wood.tres" id="wood"]
+[ext_resource type="Material" path="res://resources/layout/dark.tres" id="dark"]
+[ext_resource type="PackedScene" path="res://scenes/furniture/bed.tscn" id="SceneBed"]
+[ext_resource type="PackedScene" path="res://scenes/furniture/bedside_table.tscn" id="SceneBedsideTable"]
+[ext_resource type="PackedScene" path="res://scenes/furniture/pc_desk.tscn" id="ScenePCDesk"]
+[ext_resource type="PackedScene" path="res://scenes/furniture/chair.tscn" id="SceneChair"]
+[ext_resource type="PackedScene" path="res://scenes/furniture/wardrobe.tscn" id="SceneWardrobe"]
+[ext_resource type="PackedScene" path="res://scenes/furniture/dresser.tscn" id="SceneDresser"]
+[ext_resource type="PackedScene" path="res://scenes/furniture/shelves.tscn" id="SceneShelves"]
+[ext_resource type="PackedScene" path="res://scenes/props/moving_box.tscn" id="SceneMovingBoxA"]
+[ext_resource type="PackedScene" path="res://scenes/props/moving_box.tscn" id="SceneMovingBoxB"]
+[ext_resource type="PackedScene" path="res://scenes/props/gamer_monitor.tscn" id="SceneMonitor"]
+[ext_resource type="PackedScene" path="res://scenes/props/plastic_prop.tscn" id="ScenePlasticBlock"]
+[ext_resource type="PackedScene" path="res://scenes/props/wood_prop.tscn" id="SceneWoodBlock"]
+[ext_resource type="PackedScene" path="res://scenes/props/glass_prop.tscn" id="SceneGlassBottle"]
+[ext_resource type="PackedScene" path="res://scenes/player.tscn" id="ScenePlayer"]
+[ext_resource type="PackedScene" path="res://scenes/debug_overlay.tscn" id="SceneDebugOverlay"]
+
+[sub_resource type="BoxMesh" id="FloorMesh"]
+size = Vector3(4.9, 0.2, 4.9)
+material = ExtResource("floor")
+
+[sub_resource type="BoxShape3D" id="FloorShape"]
+size = Vector3(4.9, 0.2, 4.9)
+
+[sub_resource type="BoxMesh" id="CeilingMesh"]
+size = Vector3(4.9, 0.15, 4.9)
+material = ExtResource("trim")
+
+[sub_resource type="BoxShape3D" id="CeilingShape"]
+size = Vector3(4.9, 0.15, 4.9)
+
+[sub_resource type="BoxMesh" id="WestWallMesh"]
+size = Vector3(0.2, 2.7, 4.5)
+material = ExtResource("wall")
+
+[sub_resource type="BoxShape3D" id="WestWallShape"]
+size = Vector3(0.2, 2.7, 4.5)
+
+[sub_resource type="BoxMesh" id="EastWallMesh"]
+size = Vector3(0.2, 2.7, 4.5)
+material = ExtResource("wall")
+
+[sub_resource type="BoxShape3D" id="EastWallShape"]
+size = Vector3(0.2, 2.7, 4.5)
+
+[sub_resource type="BoxMesh" id="NorthLeftMesh"]
+size = Vector3(2.55, 2.7, 0.2)
+material = ExtResource("wall")
+
+[sub_resource type="BoxShape3D" id="NorthLeftShape"]
+size = Vector3(2.55, 2.7, 0.2)
+
+[sub_resource type="BoxMesh" id="NorthRightMesh"]
+size = Vector3(0.75, 2.7, 0.2)
+material = ExtResource("wall")
+
+[sub_resource type="BoxShape3D" id="NorthRightShape"]
+size = Vector3(0.75, 2.7, 0.2)
+
+[sub_resource type="BoxMesh" id="WindowBelowMesh"]
+size = Vector3(1.6, 1.15, 0.2)
+material = ExtResource("wall")
+
+[sub_resource type="BoxShape3D" id="WindowBelowShape"]
+size = Vector3(1.6, 1.15, 0.2)
+
+[sub_resource type="BoxMesh" id="WindowAboveMesh"]
+size = Vector3(1.6, 0.35, 0.2)
+material = ExtResource("wall")
+
+[sub_resource type="BoxShape3D" id="WindowAboveShape"]
+size = Vector3(1.6, 0.35, 0.2)
+
+[sub_resource type="BoxMesh" id="WindowGlassMesh"]
+size = Vector3(1.6, 1.2, 0.04)
+material = ExtResource("glass")
+
+[sub_resource type="BoxShape3D" id="WindowGlassShape"]
+size = Vector3(1.6, 1.2, 0.04)
+
+[sub_resource type="BoxMesh" id="WindowSillMesh"]
+size = Vector3(1.72, 0.05, 0.3)
+material = ExtResource("trim")
+
+[sub_resource type="BoxShape3D" id="WindowSillShape"]
+size = Vector3(1.72, 0.05, 0.3)
+
+[sub_resource type="BoxMesh" id="WindowFrameLeftMesh"]
+size = Vector3(0.055, 1.2, 0.065)
+material = ExtResource("trim")
+
+[sub_resource type="BoxShape3D" id="WindowFrameLeftShape"]
+size = Vector3(0.055, 1.2, 0.065)
+
+[sub_resource type="BoxMesh" id="WindowFrameRightMesh"]
+size = Vector3(0.055, 1.2, 0.065)
+material = ExtResource("trim")
+
+[sub_resource type="BoxShape3D" id="WindowFrameRightShape"]
+size = Vector3(0.055, 1.2, 0.065)
+
+[sub_resource type="BoxMesh" id="WindowFrameTopMesh"]
+size = Vector3(1.6, 0.055, 0.065)
+material = ExtResource("trim")
+
+[sub_resource type="BoxShape3D" id="WindowFrameTopShape"]
+size = Vector3(1.6, 0.055, 0.065)
+
+[sub_resource type="BoxMesh" id="WindowMullionMesh"]
+size = Vector3(0.04, 1.15, 0.065)
+material = ExtResource("trim")
+
+[sub_resource type="BoxShape3D" id="WindowMullionShape"]
+size = Vector3(0.04, 1.15, 0.065)
+
+[sub_resource type="BoxMesh" id="SouthLeftMesh"]
+size = Vector3(3.35, 2.7, 0.2)
+material = ExtResource("wall")
+
+[sub_resource type="BoxShape3D" id="SouthLeftShape"]
+size = Vector3(3.35, 2.7, 0.2)
+
+[sub_resource type="BoxMesh" id="SouthRightMesh"]
+size = Vector3(0.55, 2.7, 0.2)
+material = ExtResource("wall")
+
+[sub_resource type="BoxShape3D" id="SouthRightShape"]
+size = Vector3(0.55, 2.7, 0.2)
+
+[sub_resource type="BoxMesh" id="DoorLintelMesh"]
+size = Vector3(1, 0.6, 0.2)
+material = ExtResource("wall")
+
+[sub_resource type="BoxShape3D" id="DoorLintelShape"]
+size = Vector3(1, 0.6, 0.2)
+
+[sub_resource type="BoxMesh" id="DoorLeafMesh"]
+size = Vector3(0.94, 2.08, 0.065)
+material = ExtResource("wood")
+
+[sub_resource type="BoxShape3D" id="DoorLeafShape"]
+size = Vector3(0.94, 2.08, 0.065)
+
+[sub_resource type="BoxMesh" id="DoorJambLeftMesh"]
+size = Vector3(0.03, 2.1, 0.16)
+material = ExtResource("trim")
+
+[sub_resource type="BoxShape3D" id="DoorJambLeftShape"]
+size = Vector3(0.03, 2.1, 0.16)
+
+[sub_resource type="BoxMesh" id="DoorJambRightMesh"]
+size = Vector3(0.03, 2.1, 0.16)
+material = ExtResource("trim")
+
+[sub_resource type="BoxShape3D" id="DoorJambRightShape"]
+size = Vector3(0.03, 2.1, 0.16)
+
+[sub_resource type="BoxMesh" id="DoorHandleMesh"]
+size = Vector3(0.12, 0.035, 0.07)
+material = ExtResource("dark")
+
+[sub_resource type="BoxMesh" id="WestSkirtingMesh"]
+size = Vector3(0.025, 0.09, 4.5)
+material = ExtResource("trim")
+
+[sub_resource type="BoxMesh" id="EastSkirtingMesh"]
+size = Vector3(0.025, 0.09, 4.5)
+material = ExtResource("trim")
+
+[sub_resource type="BoxMesh" id="NorthSkirtingMesh"]
+size = Vector3(4.5, 0.09, 0.025)
+material = ExtResource("trim")
+
+[sub_resource type="Environment" id="RoomEnvironment"]
+background_mode = 1
+background_color = Color(0.15, 0.18, 0.22, 1)
+ambient_light_source = 3
+ambient_light_color = Color(0.89, 0.92, 1, 1)
+ambient_light_energy = 0.65
+tonemap_mode = 0
+
+[node name="GamersRoom" type="Node3D"]
+
+
+[node name="Shell" type="StaticBody3D" parent="."]
+collision_layer = 1
+collision_mask = 6
+
+[node name="Floor" type="MeshInstance3D" parent="Shell"]
+position = Vector3(0, -0.1, 0)
+mesh = SubResource("FloorMesh")
+
+[node name="FloorCollision" type="CollisionShape3D" parent="Shell"]
+position = Vector3(0, -0.1, 0)
+shape = SubResource("FloorShape")
+
+[node name="Ceiling" type="MeshInstance3D" parent="Shell"]
+position = Vector3(0, 2.775, 0)
+mesh = SubResource("CeilingMesh")
+
+[node name="CeilingCollision" type="CollisionShape3D" parent="Shell"]
+position = Vector3(0, 2.775, 0)
+shape = SubResource("CeilingShape")
+
+[node name="WestWall" type="MeshInstance3D" parent="Shell"]
+position = Vector3(-2.35, 1.35, 0)
+mesh = SubResource("WestWallMesh")
+
+[node name="WestWallCollision" type="CollisionShape3D" parent="Shell"]
+position = Vector3(-2.35, 1.35, 0)
+shape = SubResource("WestWallShape")
+
+[node name="EastWall" type="MeshInstance3D" parent="Shell"]
+position = Vector3(2.35, 1.35, 0)
+mesh = SubResource("EastWallMesh")
+
+[node name="EastWallCollision" type="CollisionShape3D" parent="Shell"]
+position = Vector3(2.35, 1.35, 0)
+shape = SubResource("EastWallShape")
+
+[node name="NorthLeft" type="MeshInstance3D" parent="Shell"]
+position = Vector3(-1.175, 1.35, -2.35)
+mesh = SubResource("NorthLeftMesh")
+
+[node name="NorthLeftCollision" type="CollisionShape3D" parent="Shell"]
+position = Vector3(-1.175, 1.35, -2.35)
+shape = SubResource("NorthLeftShape")
+
+[node name="NorthRight" type="MeshInstance3D" parent="Shell"]
+position = Vector3(2.075, 1.35, -2.35)
+mesh = SubResource("NorthRightMesh")
+
+[node name="NorthRightCollision" type="CollisionShape3D" parent="Shell"]
+position = Vector3(2.075, 1.35, -2.35)
+shape = SubResource("NorthRightShape")
+
+[node name="WindowBelow" type="MeshInstance3D" parent="Shell"]
+position = Vector3(0.9, 0.575, -2.35)
+mesh = SubResource("WindowBelowMesh")
+
+[node name="WindowBelowCollision" type="CollisionShape3D" parent="Shell"]
+position = Vector3(0.9, 0.575, -2.35)
+shape = SubResource("WindowBelowShape")
+
+[node name="WindowAbove" type="MeshInstance3D" parent="Shell"]
+position = Vector3(0.9, 2.525, -2.35)
+mesh = SubResource("WindowAboveMesh")
+
+[node name="WindowAboveCollision" type="CollisionShape3D" parent="Shell"]
+position = Vector3(0.9, 2.525, -2.35)
+shape = SubResource("WindowAboveShape")
+
+[node name="WindowGlass" type="MeshInstance3D" parent="Shell"]
+position = Vector3(0.9, 1.75, -2.35)
+mesh = SubResource("WindowGlassMesh")
+
+[node name="WindowGlassCollision" type="CollisionShape3D" parent="Shell"]
+position = Vector3(0.9, 1.75, -2.35)
+shape = SubResource("WindowGlassShape")
+
+[node name="WindowSill" type="MeshInstance3D" parent="Shell"]
+position = Vector3(0.9, 1.13, -2.3)
+mesh = SubResource("WindowSillMesh")
+
+[node name="WindowSillCollision" type="CollisionShape3D" parent="Shell"]
+position = Vector3(0.9, 1.13, -2.3)
+shape = SubResource("WindowSillShape")
+
+[node name="WindowFrameLeft" type="MeshInstance3D" parent="Shell"]
+position = Vector3(0.1275, 1.75, -2.31)
+mesh = SubResource("WindowFrameLeftMesh")
+
+[node name="WindowFrameLeftCollision" type="CollisionShape3D" parent="Shell"]
+position = Vector3(0.1275, 1.75, -2.31)
+shape = SubResource("WindowFrameLeftShape")
+
+[node name="WindowFrameRight" type="MeshInstance3D" parent="Shell"]
+position = Vector3(1.6725, 1.75, -2.31)
+mesh = SubResource("WindowFrameRightMesh")
+
+[node name="WindowFrameRightCollision" type="CollisionShape3D" parent="Shell"]
+position = Vector3(1.6725, 1.75, -2.31)
+shape = SubResource("WindowFrameRightShape")
+
+[node name="WindowFrameTop" type="MeshInstance3D" parent="Shell"]
+position = Vector3(0.9, 2.3225, -2.31)
+mesh = SubResource("WindowFrameTopMesh")
+
+[node name="WindowFrameTopCollision" type="CollisionShape3D" parent="Shell"]
+position = Vector3(0.9, 2.3225, -2.31)
+shape = SubResource("WindowFrameTopShape")
+
+[node name="WindowMullion" type="MeshInstance3D" parent="Shell"]
+position = Vector3(0.9, 1.75, -2.31)
+mesh = SubResource("WindowMullionMesh")
+
+[node name="WindowMullionCollision" type="CollisionShape3D" parent="Shell"]
+position = Vector3(0.9, 1.75, -2.31)
+shape = SubResource("WindowMullionShape")
+
+[node name="SouthLeft" type="MeshInstance3D" parent="Shell"]
+position = Vector3(-0.775, 1.35, 2.35)
+mesh = SubResource("SouthLeftMesh")
+
+[node name="SouthLeftCollision" type="CollisionShape3D" parent="Shell"]
+position = Vector3(-0.775, 1.35, 2.35)
+shape = SubResource("SouthLeftShape")
+
+[node name="SouthRight" type="MeshInstance3D" parent="Shell"]
+position = Vector3(2.175, 1.35, 2.35)
+mesh = SubResource("SouthRightMesh")
+
+[node name="SouthRightCollision" type="CollisionShape3D" parent="Shell"]
+position = Vector3(2.175, 1.35, 2.35)
+shape = SubResource("SouthRightShape")
+
+[node name="DoorLintel" type="MeshInstance3D" parent="Shell"]
+position = Vector3(1.4, 2.4, 2.35)
+mesh = SubResource("DoorLintelMesh")
+
+[node name="DoorLintelCollision" type="CollisionShape3D" parent="Shell"]
+position = Vector3(1.4, 2.4, 2.35)
+shape = SubResource("DoorLintelShape")
+
+[node name="DoorLeaf" type="MeshInstance3D" parent="Shell"]
+position = Vector3(1.4, 1.04, 2.35)
+mesh = SubResource("DoorLeafMesh")
+
+[node name="DoorLeafCollision" type="CollisionShape3D" parent="Shell"]
+position = Vector3(1.4, 1.04, 2.35)
+shape = SubResource("DoorLeafShape")
+
+[node name="DoorJambLeft" type="MeshInstance3D" parent="Shell"]
+position = Vector3(0.915, 1.05, 2.35)
+mesh = SubResource("DoorJambLeftMesh")
+
+[node name="DoorJambLeftCollision" type="CollisionShape3D" parent="Shell"]
+position = Vector3(0.915, 1.05, 2.35)
+shape = SubResource("DoorJambLeftShape")
+
+[node name="DoorJambRight" type="MeshInstance3D" parent="Shell"]
+position = Vector3(1.885, 1.05, 2.35)
+mesh = SubResource("DoorJambRightMesh")
+
+[node name="DoorJambRightCollision" type="CollisionShape3D" parent="Shell"]
+position = Vector3(1.885, 1.05, 2.35)
+shape = SubResource("DoorJambRightShape")
+
+[node name="DoorHandle" type="MeshInstance3D" parent="Shell"]
+position = Vector3(1.72, 1.03, 2.29)
+mesh = SubResource("DoorHandleMesh")
+
+[node name="WestSkirting" type="MeshInstance3D" parent="Shell"]
+position = Vector3(-2.2375, 0.045, 0)
+mesh = SubResource("WestSkirtingMesh")
+
+[node name="EastSkirting" type="MeshInstance3D" parent="Shell"]
+position = Vector3(2.2375, 0.045, 0)
+mesh = SubResource("EastSkirtingMesh")
+
+[node name="NorthSkirting" type="MeshInstance3D" parent="Shell"]
+position = Vector3(0, 0.045, -2.2375)
+mesh = SubResource("NorthSkirtingMesh")
+
+[node name="Furniture" type="Node3D" parent="."]
+
+[node name="MovableProps" type="Node3D" parent="."]
+
+[node name="Bed" parent="Furniture" instance=ExtResource("SceneBed")]
+position = Vector3(-1.49, 0, -1.04)
+
+[node name="BedsideTable" parent="Furniture" instance=ExtResource("SceneBedsideTable")]
+position = Vector3(-0.45, 0, -1.95)
+
+[node name="PCDesk" parent="Furniture" instance=ExtResource("ScenePCDesk")]
+position = Vector3(1.3, 0, -1.82)
+
+[node name="Chair" parent="Furniture" instance=ExtResource("SceneChair")]
+position = Vector3(1.28, 0, -0.96)
+
+[node name="Wardrobe" parent="Furniture" instance=ExtResource("SceneWardrobe")]
+position = Vector3(-1.48, 0, 1.91)
+rotation = Vector3(0, 3.141592653589793, 0)
+
+[node name="Dresser" parent="Furniture" instance=ExtResource("SceneDresser")]
+position = Vector3(-0.1, 0, 1.94)
+rotation = Vector3(0, 3.141592653589793, 0)
+
+[node name="Shelves" parent="Furniture" instance=ExtResource("SceneShelves")]
+position = Vector3(2.04, 0, 0.23)
+rotation = Vector3(0, -1.5707963267948966, 0)
+
+[node name="MovingBoxA" parent="MovableProps" instance=ExtResource("SceneMovingBoxA")]
+position = Vector3(-1.85, 0.195, 0.67)
+
+[node name="MovingBoxB" parent="MovableProps" instance=ExtResource("SceneMovingBoxB")]
+position = Vector3(-1.27, 0.195, 0.72)
+rotation = Vector3(0, 0.12, 0)
+
+[node name="Monitor" parent="MovableProps" instance=ExtResource("SceneMonitor")]
+position = Vector3(1.18, 0.755, -1.95)
+
+[node name="PlasticBlock" parent="MovableProps" instance=ExtResource("ScenePlasticBlock")]
+position = Vector3(0.16, 1.06, 1.88)
+
+[node name="WoodBlock" parent="MovableProps" instance=ExtResource("SceneWoodBlock")]
+position = Vector3(1.82, 0.88, -1.62)
+
+[node name="GlassBottle" parent="MovableProps" instance=ExtResource("SceneGlassBottle")]
+position = Vector3(-0.45, 0.83, -1.95)
+
+[node name="Player" parent="." instance=ExtResource("ScenePlayer")]
+position = Vector3(1.4, 0.02, 1.55)
+rotation = Vector3(0, 0.3, 0)
+
+[node name="DebugOverlay" parent="." node_paths=PackedStringArray("grabber") instance=ExtResource("SceneDebugOverlay")]
+grabber = NodePath("../Player/Grabber")
+debug_visible = false
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("RoomEnvironment")
+
+[node name="CeilingLight" type="OmniLight3D" parent="."]
+position = Vector3(0, 2.48, 0)
+light_color = Color(1, 0.92, 0.82, 1)
+light_energy = 1.1
+omni_range = 6.0
+shadow_enabled = true
+
+[node name="WindowLight" type="OmniLight3D" parent="."]
+position = Vector3(0.9, 2.12, -2.0)
+light_color = Color(0.77, 0.87, 1, 1)
+light_energy = 0.45
+omni_range = 4.0
+
+[node name="LevelLabel" type="CanvasLayer" parent="."]
+layer = 2
+
+[node name="Title" type="Label" parent="LevelLabel"]
+offset_left = -365.0
+anchor_left = 1.0
+anchor_right = 1.0
+offset_top = 16.0
+offset_right = -20.0
+offset_bottom = 55.0
+mouse_filter = 2
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
+theme_override_constants/shadow_offset_x = 1
+theme_override_constants/shadow_offset_y = 1
+text = "The Gamer's Room | layout prototype"

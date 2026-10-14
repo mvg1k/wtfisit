@@ -1,0 +1,57 @@
+[gd_scene load_steps=9 format=3]
+
+[ext_resource type="Material" path="res://resources/layout/wood.tres" id="wood"]
+[ext_resource type="Material" path="res://resources/layout/trim.tres" id="trim"]
+
+; Support faces have a 1 cm collision skin for Godot Physics contact tolerance.
+; Mesh dimensions and support undersides stay unchanged.
+
+[sub_resource type="BoxMesh" id="CabinetMesh"]
+size = Vector3(1.25, 2.1, 0.58)
+material = ExtResource("wood")
+
+[sub_resource type="BoxShape3D" id="CabinetShape"]
+size = Vector3(1.25, 2.11, 0.58)
+
+[sub_resource type="BoxMesh" id="FrontLeftMesh"]
+size = Vector3(0.59, 2.02, 0.025)
+material = ExtResource("trim")
+
+[sub_resource type="BoxShape3D" id="FrontLeftShape"]
+size = Vector3(0.59, 2.02, 0.025)
+
+[sub_resource type="BoxMesh" id="FrontRightMesh"]
+size = Vector3(0.59, 2.02, 0.025)
+material = ExtResource("trim")
+
+[sub_resource type="BoxShape3D" id="FrontRightShape"]
+size = Vector3(0.59, 2.02, 0.025)
+
+[node name="Wardrobe" type="StaticBody3D"]
+collision_layer = 1
+collision_mask = 6
+
+
+[node name="Cabinet" type="MeshInstance3D" parent="."]
+position = Vector3(0, 1.05, 0)
+mesh = SubResource("CabinetMesh")
+
+[node name="CabinetCollision" type="CollisionShape3D" parent="."]
+position = Vector3(0, 1.055, 0)
+shape = SubResource("CabinetShape")
+
+[node name="FrontLeft" type="MeshInstance3D" parent="."]
+position = Vector3(-0.31, 1.05, 0.3025)
+mesh = SubResource("FrontLeftMesh")
+
+[node name="FrontLeftCollision" type="CollisionShape3D" parent="."]
+position = Vector3(-0.31, 1.05, 0.3025)
+shape = SubResource("FrontLeftShape")
+
+[node name="FrontRight" type="MeshInstance3D" parent="."]
+position = Vector3(0.31, 1.05, 0.3025)
+mesh = SubResource("FrontRightMesh")
+
+[node name="FrontRightCollision" type="CollisionShape3D" parent="."]
+position = Vector3(0.31, 1.05, 0.3025)
+shape = SubResource("FrontRightShape")

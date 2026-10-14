@@ -32,6 +32,35 @@ and throwing household clutter provides play and stress relief.
   Drop, Escape, focus loss, forced release, deletion and restart clear it; cursor recapture cannot
   charge. Changing stance continues charging while the hold remains safe.
 
+## Physical kick (Prompt #8)
+
+- RMB with empty hands kicks; while holding it retains drop/charge cancellation.
+  One press requests one physics-tick action, with a 0.45 s cooldown including
+  misses. Focus/cursor release cancels pending kicks. Debug-build F3 shows the
+  current eligible kick target, hit distance and maximum range at the existing 5 Hz.
+- The camera ray chooses the first World/Props surface. The nominal 1.35 m
+  lower-body bound (origin 0.6 m above feet, lower in low stances) and leg ray
+  remain broad gates. Milestone #9A.1 additionally checks distance from an ankle
+  origin 0.12 m above feet, contact height [-0.10 m, 65% of actual capsule height],
+  a forward cone (dot >= 0.5), exclusion of underfoot contacts and a 0.06 m radius
+  swept foot volume against World/Props. Tiny floor contacts raise the sweep end
+  just enough for sole clearance. A nearby floor monitor below a bed platform
+  fails even when inside the nominal range; same-level platform kicks remain valid.
+  F3 and impulse application share this exact eligibility query, with foot distance
+  and relative contact height shown for valid targets. No leg animation is added.
+- Apply an impulse at the actual hit point, forward with a slight upward component
+  (0.18 before normalization). Magnitude is `min(10 N·s, mass * 10 m/s)`:
+  light bodies gain at most 10 m/s, 2 kg gains 5 m/s, 5 kg gains 2 m/s,
+  12 kg gains 0.83 m/s, and 100 kg gains 0.1 m/s before contact response.
+  Off-center hits generate solver-driven rotation; heavy dynamic bodies remain movable.
+- Kicks wake supported props, reset rest tracking and restore debris flight damping.
+  The existing motion sweep protects kicked props. Subsequent physical collisions
+  use the unchanged ImpactBody/material thresholds; kicks add no separate damage
+  event or damage model. Ceramic/glass can shatter on kicked wall/floor impacts.
+- All movement, pushing, manipulation, throws, settling, search and physics tuning
+  remain unchanged. `tests/kick_smoke.gd` covers input precedence, range/occlusion,
+  mass, torque, cooldown, waking, room furniture, real fractures and debris kicks.
+
 ## Physical search behaviors (Prompt #4)
 
 - Start with FIND YOUR KEYS. One physical keys target spawns at a randomly
@@ -170,7 +199,7 @@ and throwing household clutter provides play and stress relief.
   props darken at their authored damage states. Primitive silhouettes distinguish
   the necked vase/bottle, studded plastic toy brick, grained timber and handled
   iron weight marked 8 kg. No final art or containment behavior.
-  The monitor's unchanged compound collider across states now encloses its
+  The monitor's single convex collider, unchanged across damage states, encloses its
   screen/crack geometry; its old screen collider was shallower than the visuals.
   Broken staged props remain movable single bodies; four support contacts remain
   available for settling, while damage processing stops.
@@ -181,7 +210,77 @@ and throwing household clutter provides play and stress relief.
 
 ## Structure and conventions
 
-- `scenes/search_game.tscn`: main scene; local SearchRun controller and minimal HUD.
+- `scenes/main_menu.tscn`: F5 main scene for Milestone #9A.3. A small native
+  Control menu shell launches the Gamer's Room under a pausable Gameplay node;
+  the menu layer alone keeps processing while the SceneTree is paused. Main Menu
+  has Play/Settings/Quit; Pause has Resume/Restart/Settings/Main Menu. Esc toggles
+  pause and settings Back returns to its caller. Focus loss pauses. Room replacement
+  is deferred and guarded against repeated activation; no global gameplay manager.
+- `scripts/main_menu.gd` and `settings_menu.gd`: dark responsive native Controls,
+  keyboard/mouse focus and shared settings view. Pause releases the cursor, drops
+  the hold and clears queued input through `PhysicsGrabber.cancel_pending_input()`;
+  gameplay callbacks/physics stop until Resume recaptures the cursor. Standalone
+  F6 fixtures retain their original Escape/cursor behavior.
+- `scripts/game_settings.gd`: the only settings autoload; ConfigFile persistence
+  at `user://settings.cfg`. Immediate sensitivity (0.0005–0.01), vertical FOV
+  (60–110°), Master volume (0–1, zero mutes) and fullscreen/windowed updates.
+  Defaults preserve 0.0025 sensitivity and 75° FOV. The player's ready hook and
+  settings signal apply both values without changing movement/interaction physics.
+  No previous shared settings architecture existed; no save-game system is added.
+- `tests/menu_smoke.gd`: real viewport keyboard/mouse routing, paused physics/input,
+  charge/queued-action cancellation, repeated room rebuilds, settings application,
+  fresh-process persistence and optional rendered screenshots/window-mode checks.
+  #9A.3 validation: 48 headless + 50 rendered menu checks, 7 persistence checks
+  and 417 existing gameplay checks passed. Editor import, default rendered launch
+  and preserved physics-room launch passed; prior certificate/search shutdown
+  diagnostics remain. Settings probes use isolated APPDATA; no physics tuning changes.
+- `scenes/gamers_room.tscn`: Milestone #9A standalone layout sandbox, launched
+  with F5 → Main Menu → Play, F6 or an explicit scene path.
+  Clear interior is 4.5 × 4.5 m (20.25 m²), ceiling 2.7 m. South entrance landing,
+  west bed, north window/PC desk, perimeter storage and central circulation.
+  Door/window are fixed placeholders; no new search spots or run controller.
+  #9A.1 shifts only the desk setup 0.15 m east to widen the bedside pinch point
+  from 0.565 to 0.715 m for the 0.60 m player capsule. See README's scale audit.
+- `scenes/furniture/*.tscn`: reusable floor-origin, unit-scale furniture
+  placeholders (PC desk, chair, bed, wardrobe, dresser, shelves, bedside table).
+  Primitive meshes and compound box colliders; temporary shared render palette
+  in `resources/layout/`. Bed underside is 0.52 m for prone access between legs.
+  #9A.2 makes chair (8 kg, COM 0/0.43/0.035 m) and bedside cabinet (12 kg, COM
+  0/0.25/0 m) ordinary grabbable RigidBody3D props with CCD and four contacts;
+  shared pushing, kicking, holding and PropRest apply. Larger furniture stays static.
+  Support faces have a 1 cm upward collision skin against the default contact
+  penetration allowance; their undersides and visible dimensions are unchanged.
+  Dynamic furniture soles extend 1 cm below the visible feet. No new damage states.
+- `scenes/props/moving_box.tscn` and `gamer_monitor.tscn`: inherited ordinary
+  physics box and desktop-sized existing impact monitor. Resize meshes/shapes,
+  retain unit-scale physics roots and original interaction/impact behavior.
+  Existing glass/plastic/wood props are reused. Only chair and bedside furniture
+  become dynamic in #9A.2; the other furniture stays fixed.
+- Both monitor sizes use one convex hull around their original collision boxes.
+  Separate screen/base contact manifolds caused persistent 3.5–4.4 mm/tick floor
+  rocking in an exact spinning face-down fall; it lasted beyond 30 s without
+  PropRest. The hull retains outer dimensions but fills stand gaps. Automatic
+  COM/inertia use the centred hull; COM y is 0.305/0.525 m (desktop/large).
+  Mass, friction, damping, solver settings, margins and interactions are unchanged.
+  `tests/monitor_settling_smoke.gd` passes 130 focused checks: 38 falls without
+  PropRest, native sleep within 3.22 s, no resting drift, and four pickup/throw
+  recoveries. No new freezing, sleep forcing or shared rest changes.
+- `tests/gamers_room_smoke.gd`: 46 focused actual-room checks for spawn, scale,
+  settled overlaps, walking routes, crouch/prone, bed clearance, pickup/throw,
+  kicks and inherited monitor impacts. #9A.1 also extends `kick_smoke.gd` with
+  elevated/low/side-obstructed reach and real bed/monitor regressions.
+  #9A.1 validation: 87 kick + 46 room/scale + 35 physics checks passed. Editor
+  import, rendered room/F3 views and both standalone room launches completed.
+  Rendered entrance/desk/storage inspection and direct scene launch passed.
+  No movement, grabber, search or physics tuning changed.
+- `tests/furniture_surface_smoke.gd`: #9A.2 regression for accepted contact slop
+  on authored furniture faces, actual bottle hold/release, loaded moving supports,
+  pushing/kicking and real thrown ImpactBody contacts. 84 checks pass alongside
+  46 room and 87 kick checks. Thirteen placements leave visible gaps within
+  -0.59/+0.88 mm, with sleeping loaded pairs and under 2 mm subsequent drift.
+  Only furniture scene data changes; bottle geometry, controllers, kick tuning,
+  search scenes and global physics settings stay unchanged.
+- `scenes/search_game.tscn`: preserved standalone F6 search scene; local SearchRun controller and minimal HUD.
 - `scripts/search_run.gd`: run state, selection, target identity, timer, and reset.
   It listens to the grabber's generic `object_picked_up` signal; no target logic
   lives in the player or grabber.
@@ -242,7 +341,8 @@ prototype is not a destruction-performance benchmark.
 
 ## Future systems — NOT IMPLEMENTED
 
-Additional targets/rooms, containers, hints, dedicated inspection UI, audio,
+Additional search targets/rooms, containers, hints, dedicated inspection UI, audio,
 procedural fracture, further material interactions, tools, fire, liquids, electricity, inventory,
-economy/rewards, challenges, unlocks/progression, procedural rooms, saving,
-menus, easter eggs, and polished art. No work on these is part of this milestone.
+economy/rewards, challenges, unlocks/progression, procedural rooms, game-state saving,
+mission selection, shop, cosmetics, easter eggs, and polished art.
+Only main/pause menus and user settings persistence are included in #9A.3.

@@ -1,0 +1,118 @@
+[gd_scene load_steps=17 format=3]
+
+[ext_resource type="Material" path="res://resources/layout/wood.tres" id="wood"]
+[ext_resource type="Material" path="res://resources/layout/dark.tres" id="dark"]
+
+; Support faces have a 1 cm collision skin for Godot Physics contact tolerance.
+; Mesh dimensions and support undersides stay unchanged.
+
+[sub_resource type="BoxMesh" id="TopMesh"]
+size = Vector3(1.6, 0.06, 0.72)
+material = ExtResource("wood")
+
+[sub_resource type="BoxShape3D" id="TopShape"]
+size = Vector3(1.6, 0.07, 0.72)
+
+[sub_resource type="BoxMesh" id="LegLBackMesh"]
+size = Vector3(0.06, 0.69, 0.06)
+material = ExtResource("dark")
+
+[sub_resource type="BoxShape3D" id="LegLBackShape"]
+size = Vector3(0.06, 0.69, 0.06)
+
+[sub_resource type="BoxMesh" id="LegLFrontMesh"]
+size = Vector3(0.06, 0.69, 0.06)
+material = ExtResource("dark")
+
+[sub_resource type="BoxShape3D" id="LegLFrontShape"]
+size = Vector3(0.06, 0.69, 0.06)
+
+[sub_resource type="BoxMesh" id="LegRBackMesh"]
+size = Vector3(0.06, 0.69, 0.06)
+material = ExtResource("dark")
+
+[sub_resource type="BoxShape3D" id="LegRBackShape"]
+size = Vector3(0.06, 0.69, 0.06)
+
+[sub_resource type="BoxMesh" id="LegRFrontMesh"]
+size = Vector3(0.06, 0.69, 0.06)
+material = ExtResource("dark")
+
+[sub_resource type="BoxShape3D" id="LegRFrontShape"]
+size = Vector3(0.06, 0.69, 0.06)
+
+[sub_resource type="BoxMesh" id="PCTowerMesh"]
+size = Vector3(0.22, 0.48, 0.42)
+material = ExtResource("dark")
+
+[sub_resource type="BoxShape3D" id="PCTowerShape"]
+size = Vector3(0.22, 0.48, 0.42)
+
+[sub_resource type="BoxMesh" id="KeyboardMesh"]
+size = Vector3(0.43, 0.025, 0.15)
+material = ExtResource("dark")
+
+[sub_resource type="BoxMesh" id="MouseMesh"]
+size = Vector3(0.065, 0.03, 0.105)
+material = ExtResource("dark")
+
+[node name="PCDesk" type="StaticBody3D"]
+collision_layer = 1
+collision_mask = 6
+
+
+[node name="Top" type="MeshInstance3D" parent="."]
+position = Vector3(0, 0.72, 0)
+mesh = SubResource("TopMesh")
+
+[node name="TopCollision" type="CollisionShape3D" parent="."]
+position = Vector3(0, 0.725, 0)
+shape = SubResource("TopShape")
+
+[node name="LegLBack" type="MeshInstance3D" parent="."]
+position = Vector3(-0.71, 0.345, -0.27)
+mesh = SubResource("LegLBackMesh")
+
+[node name="LegLBackCollision" type="CollisionShape3D" parent="."]
+position = Vector3(-0.71, 0.345, -0.27)
+shape = SubResource("LegLBackShape")
+
+[node name="LegLFront" type="MeshInstance3D" parent="."]
+position = Vector3(-0.71, 0.345, 0.27)
+mesh = SubResource("LegLFrontMesh")
+
+[node name="LegLFrontCollision" type="CollisionShape3D" parent="."]
+position = Vector3(-0.71, 0.345, 0.27)
+shape = SubResource("LegLFrontShape")
+
+[node name="LegRBack" type="MeshInstance3D" parent="."]
+position = Vector3(0.71, 0.345, -0.27)
+mesh = SubResource("LegRBackMesh")
+
+[node name="LegRBackCollision" type="CollisionShape3D" parent="."]
+position = Vector3(0.71, 0.345, -0.27)
+shape = SubResource("LegRBackShape")
+
+[node name="LegRFront" type="MeshInstance3D" parent="."]
+position = Vector3(0.71, 0.345, 0.27)
+mesh = SubResource("LegRFrontMesh")
+
+[node name="LegRFrontCollision" type="CollisionShape3D" parent="."]
+position = Vector3(0.71, 0.345, 0.27)
+shape = SubResource("LegRFrontShape")
+
+[node name="PCTower" type="MeshInstance3D" parent="."]
+position = Vector3(0.53, 0.24, -0.02)
+mesh = SubResource("PCTowerMesh")
+
+[node name="PCTowerCollision" type="CollisionShape3D" parent="."]
+position = Vector3(0.53, 0.24, -0.02)
+shape = SubResource("PCTowerShape")
+
+[node name="Keyboard" type="MeshInstance3D" parent="."]
+position = Vector3(-0.12, 0.762, 0.19)
+mesh = SubResource("KeyboardMesh")
+
+[node name="Mouse" type="MeshInstance3D" parent="."]
+position = Vector3(0.23, 0.765, 0.21)
+mesh = SubResource("MouseMesh")

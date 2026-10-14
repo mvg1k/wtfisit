@@ -42,5 +42,15 @@ func _update_stats() -> void:
 				body.last_impact_severity, body.impact_material.damage_threshold, body.impact_material.break_threshold]
 			detail += "\nClosing: %.2f m/s | effective mass: %.2f kg\n%s" % [
 				body.last_closing_speed, body.last_effective_mass, body.last_impact_source]
+	if OS.is_debug_build():
+		var hit := grabber.get_kick_target()
+		var target := "none"
+		if is_instance_valid(body):
+			target = "unavailable (holding)"
+		elif not hit.is_empty():
+			target = "%s (%.2f m foot)" % [hit.collider.name, hit.distance]
+		detail += "\nKick target: %s\nKick range: %.2f m max" % [target, grabber.kick_reach]
+		if not hit.is_empty():
+			detail += "\nContact height: %+.2f m above feet" % hit.contact_height
 	_stats.text = "FPS: %d\n%s\nStance: %s" % [
 		Engine.get_frames_per_second(), detail, SandboxPlayer.Stance.keys()[grabber.player.stance]]

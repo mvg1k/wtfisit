@@ -19,8 +19,10 @@ albedo_color = Color(0.75, 0.86, 0.88, 1)
 [sub_resource type="BoxMesh" id="ScreenMesh"]
 size = Vector3(1.2, 0.7, 0.2)
 material = SubResource("Housing")
-[sub_resource type="BoxShape3D" id="ScreenShape"]
-size = Vector3(1.2, 0.7, 0.27)
+; One convex contact manifold prevents screen/base contacts alternating on the floor.
+; Uses the existing outer collision bounds; conservatively fills the stand gaps.
+[sub_resource type="ConvexPolygonShape3D" id="ScreenShape"]
+points = PackedVector3Array(-0.6, -0.175, -0.135, -0.6, -0.175, 0.135, -0.6, 0.525, -0.135, -0.6, 0.525, 0.135, 0.6, -0.175, -0.135, 0.6, -0.175, 0.135, 0.6, 0.525, -0.135, 0.6, 0.525, 0.135, -0.08, -0.48, -0.08, -0.08, -0.48, 0.08, -0.08, -0.13, -0.08, -0.08, -0.13, 0.08, 0.08, -0.48, -0.08, 0.08, -0.48, 0.08, 0.08, -0.13, -0.08, 0.08, -0.13, 0.08, -0.325, -0.525, -0.225, -0.325, -0.525, 0.225, -0.325, -0.445, -0.225, -0.325, -0.445, 0.225, 0.325, -0.525, -0.225, 0.325, -0.525, 0.225, 0.325, -0.445, -0.225, 0.325, -0.445, 0.225)
 [sub_resource type="BoxMesh" id="StandMesh"]
 size = Vector3(0.16, 0.35, 0.16)
 material = SubResource("Housing")
@@ -53,7 +55,8 @@ broken_visual = NodePath("Broken")
 position = Vector3(0, 0.7, 0)
 mesh = SubResource("ScreenMesh")
 [node name="ScreenCollision" type="CollisionShape3D" parent="."]
-position = Vector3(0, 0.7, 0)
+; Centre the hull on its bounds; mass moments remain automatic.
+position = Vector3(0, 0.525, 0)
 shape = SubResource("ScreenShape")
 [node name="Stand" type="MeshInstance3D" parent="."]
 position = Vector3(0, 0.22, 0)
@@ -61,12 +64,14 @@ mesh = SubResource("StandMesh")
 [node name="StandCollision" type="CollisionShape3D" parent="."]
 position = Vector3(0, 0.22, 0)
 shape = SubResource("StandShape")
+disabled = true
 [node name="Foot" type="MeshInstance3D" parent="."]
 position = Vector3(0, 0.04, 0)
 mesh = SubResource("FootMesh")
 [node name="FootCollision" type="CollisionShape3D" parent="."]
 position = Vector3(0, 0.04, 0)
 shape = SubResource("FootShape")
+disabled = true
 [node name="Intact" type="MeshInstance3D" parent="."]
 position = Vector3(0, 0.7, 0.112)
 mesh = SubResource("DisplayMesh")

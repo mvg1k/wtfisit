@@ -1,0 +1,55 @@
+[gd_scene load_steps=7 format=3]
+
+[ext_resource type="Material" path="res://resources/layout/wood.tres" id="wood"]
+
+; Support faces have a 1 cm collision skin for Godot Physics contact tolerance.
+; Mesh dimensions and support undersides stay unchanged.
+; Dynamic furniture soles also have a 1 cm downward skin.
+
+[sub_resource type="BoxMesh" id="CabinetMesh"]
+size = Vector3(0.44, 0.51, 0.44)
+material = ExtResource("wood")
+
+[sub_resource type="BoxShape3D" id="CabinetShape"]
+size = Vector3(0.44, 0.52, 0.44)
+
+[sub_resource type="BoxMesh" id="TopMesh"]
+size = Vector3(0.47, 0.035, 0.47)
+material = ExtResource("wood")
+
+[sub_resource type="BoxShape3D" id="TopShape"]
+size = Vector3(0.47, 0.045, 0.47)
+
+[sub_resource type="PhysicsMaterial" id="FurnitureContact"]
+friction = 0.65
+bounce = 0.0
+
+[node name="BedsideTable" type="RigidBody3D" groups=["grabbable"]]
+collision_layer = 4
+collision_mask = 7
+mass = 12.0
+physics_material_override = SubResource("FurnitureContact")
+center_of_mass_mode = 1
+center_of_mass = Vector3(0, 0.25, 0)
+continuous_cd = true
+max_contacts_reported = 4
+linear_damp = 0.15
+angular_damp = 0.4
+can_sleep = true
+
+
+[node name="Cabinet" type="MeshInstance3D" parent="."]
+position = Vector3(0, 0.255, 0)
+mesh = SubResource("CabinetMesh")
+
+[node name="CabinetCollision" type="CollisionShape3D" parent="."]
+position = Vector3(0, 0.25, 0)
+shape = SubResource("CabinetShape")
+
+[node name="Top" type="MeshInstance3D" parent="."]
+position = Vector3(0, 0.5275, 0)
+mesh = SubResource("TopMesh")
+
+[node name="TopCollision" type="CollisionShape3D" parent="."]
+position = Vector3(0, 0.5325, 0)
+shape = SubResource("TopShape")
