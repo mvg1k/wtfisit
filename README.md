@@ -6,6 +6,573 @@ enter The Gamer's Room. The original search game is available with **F6** in
 `scenes/search_game.tscn`. No plugins, assets, or editor setup required.
 See [PROJECT.md](PROJECT.md) for scope and persistent design context.
 
+## Tight-space pickup recovery — Milestone #9A.12
+
+A comparable fallen-monitor pose reproduces every reported F3 field: surface
+**1.2469 m**, no occluder, zero current penetration, padded proximity, overlapping
+preferred target and the old `escape_blocked` rejection. The full enabled monitor
+hull is at (1.4, 0.332, 2.16), rotated 90 degrees around Z; the standing player
+origin is (1.5, 0.02, 1.695), aiming at monitor-local (-0.32, 0.05, 0).
+The actual capsule has radius 0.30 m and height 1.80 m. Neither body currently
+penetrates the other or World geometry. Moving the full hull only 25 mm outward
+hits `Shell/SouthLeftCollision`, the wall beside the door. The former single-path
+search therefore rejected a safely reachable object. Original user transforms
+are unavailable, so this is a matching geometric reproduction.
+
+Recovery now tries at most **seven straight directions**, stopping at the first
+safe result: outward, the two outward/lateral diagonals, the two lateral directions,
+outward/up and up. Every candidate retains the existing bounded distance search,
+full-shape sweeps, contact-depth checks and 80 mm final player clearance. The
+monitor uses candidate four, a lateral exit away from the wall; a low-lipped
+furniture fixture uses candidate seven, upward. Solid lips plus a lid reject with
+`no_safe_recovery_path`. F3 shows the selected direction and candidate count;
+underfoot/inward-motion guards and contact-query overflow rejection remain.
+
+The existing spring, inertia, rotation and per-tick chosen-path safety checks are
+unchanged. The search runs on E pickup or a visible F3 preview (5 Hz), never on
+every render/physics frame during a hold. Local full eligibility previews measured
+0.08–1.83 ms across 20 samples, averaging 0.77 ms, including ordinary pickup and
+seven-candidate rejection. This is a small local timing sample, not a hardware
+benchmark. Camera/prop interpolation, 60 Hz physics, 1.60 m surface reach,
+visibility gates, collision shapes, force tuning and #9A.10 target clamping stay
+unchanged. No body transform writes or global collision changes were added.
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File tests/run_pickup_tight.ps1 -Godot 'C:\path\to\Godot_console.exe'
+powershell -NoProfile -ExecutionPolicy Bypass -File tests/run_pickup_tight.ps1 -Godot 'C:\path\to\Godot_console.exe' -FrameRates 30 -Render
+```
+
+Validation: **39 checks** at each 30/120/180 fixed frame clock and another 39 in
+the rendered run; **595 regression checks** across overlap, targeting, reliability,
+held distance, camera, props, crosshair, kick and restart. Coverage includes the
+door monitor, all stances, upward/trapped exits, native E/RMB/charged throw and
+camera movement. Existing suites cover open-floor monitors, bed proximity,
+occlusion/range, bottle/chair and restart cycles. No unexpected engine errors;
+logs/geometry/timings/F3 captures stay in ignored `.validation/`.
+
+Manual check: F5 → Play → F3. Drop the monitor on its side near the door, aim at
+an exposed surface within 1.60 m and press E once. A safe lateral exit should
+clear padding and stay held. Repeat crouched and approach from the side when
+prone, then look, E/RMB drop, charge/throw and restart. Try a box near the bed,
+bottle/chair, and an object blocked on the sides and above. Occluded/trapped exits
+must reject. This bounded search cannot find curved or rotation-dependent escape
+paths. A very close prone frontal view still triggers the separate existing
+`no_target_clearance` hold guard after wall shortening; the side approach passes.
+
+## Pickup overlap recovery — Milestone #9A.11
+
+`body_overlaps_player` tested the **current** body against the actual player
+capsule with a **60 mm query margin**. It was not a proposed-target test. That
+single flag rejected both real penetration and nonintersecting shapes inside
+the padding, including bodies with a safe outward exit.
+
+Equivalent reproductions use the authored MovingBoxA collider (0.48 × 0.38 ×
+0.42 m), the monitor's complete enabled convex hull and the actual stance capsule:
+
+| Reproduction | Surface distance | Exact current penetration | Measured gap | Previous padded flag |
+| --- | --- | --- | --- | --- |
+| MovingBoxA, standing | 1.3334 m | 40.0 mm | 0 | true |
+| MovingBoxA, 5 cm farther sideways | 1.3503 m | 0 | 10.0 mm | true |
+| Fallen monitor, crouching | 1.1399 m | 0 | approximately 51.0 mm | true |
+
+The first box pose has its centre at (-1.85, 0.195, 0.67) and the player origin
+at (-1.35, 0.02, 0.67), using a radius-0.30 m, height-1.80 m capsule.
+The monitor pose is (0, 0.132, -0.8), rotated 90 degrees around X; the crouched
+player is at (-0.318198, 0.02, -1.118198), with radius 0.30 m and height 1.00 m.
+Original user transforms were unavailable: these reproduce the reported distances
+and failure predicate, rather than uniquely reconstructing those original poses.
+
+Pickup can now enter a brief outward recovery when a full-shape escape is clear.
+It finds the first outward pose satisfying the existing 80 mm player clearance,
+sweeps all enabled shapes against World/Props, and checks existing contact normals
+and sampled depths so an initial furniture contact cannot hide a blocked exit.
+The unchanged spring moves the body; no transforms, collision shapes, global
+collision settings or force coefficients are changed. Per-shape player depth
+must decrease or stay within numerical tolerance, and world penetration must not
+increase. These conditions and the exit are rechecked each physics tick. Recovery
+finishes at normal clearance or aborts with a named reason after blockage,
+worsening contact or a one-second timeout. Tested exits clear in 8–19 physics
+ticks (0.13–0.32 seconds), then use the existing #9A.10 target clamp.
+
+Read-only F3 now separates exact **current penetration**, the old **padding**
+flag, **preferred/proposed target overlap**, and recovery status/rejection.
+Underfoot bodies, inward-moving overlaps and blocked outward exits remain
+rejected. Recovery intentionally tries one horizontal outward path; stepping
+back or changing stance can still be necessary in a tightly trapped arrangement.
+Reach remains 1.60 m with both sight-line checks. Ordinary hold/drop/throw/kick,
+mass response, camera/prop interpolation and 60 Hz physics remain unchanged.
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File tests/run_pickup_overlap.ps1 -Godot 'C:\path\to\Godot_console.exe'
+powershell -NoProfile -ExecutionPolicy Bypass -File tests/run_pickup_overlap.ps1 -Godot 'C:\path\to\Godot_console.exe' -FrameRates 30 -Render
+```
+
+The focused suite passes **51 checks** at each 30/120/180 fixed render clock and
+51 in the rendered run. It covers single native E input, both reported-distance
+reproductions, padded-only versus true overlap, blocked and underfoot rejection,
+all three stances, a reachable box partly under the real bed and an occluded box.
+Another **542 regression checks pass**: targeting 112, grab reliability 87, held
+distance 52, camera 60, prop smoothing 37, crosshair 29, kick 87 and restart 78.
+The former unconditional-overlap rejection fixture now has a genuinely blocked
+exit. No unexpected engine errors were found; logs, contact geometry and rendered
+F3 captures are in ignored `.validation/`. Import also preserves script UIDs.
+
+Manual check: F5 → Play → F3. Approach MovingBoxA and a fallen monitor closely,
+aim at an exposed surface within 1.60 m, and press E once. With a clear outward
+exit, exact penetration should reduce to zero, padding should clear, and the
+object should stay held. Repeat crouched/prone and partly under the bed. Block
+the exit with furniture/a wall, or stand directly over the body: rejection should
+name the unsafe escape. Check a bottle/chair, slow/fast look, E/RMB drop, charged
+throw, kick, pause/resume and restart. Occluded surfaces must still reject.
+
+## Reliable pickup targeting — Milestone #9A.10
+
+The fallen monitor's ray hit, collision layer (Props/4), parent RigidBody3D and
+E input were working. The reproduced failure accepted pickup, then immediately
+released with `target_overlaps_player` on the same physics tick: the preferred
+1 m target was inside the capsule while the monitor itself was clear. One flat
+monitor surface was 1.545 m away, within the unchanged 1.60 m limit. Five of 28
+accepted probe cases immediately dropped; changing the angle changed whether
+that unsafe target was produced. Actual overlap, floor occlusion and out-of-reach
+surfaces also explain legitimate failures and remain rejected.
+
+When that preferred target overlaps the player, the grabber now finds a clear
+point along the segment from the current body centre toward the target. Six
+bounded overlap checks use the same shapes and 0.08 m margin as final target
+validation, with a small endpoint backoff. It only applies with no wall hit or
+an upward support plane; horizontal wall-shortened targets keep their existing
+rejection behavior. The final overlap/path/forward-side checks, physical overlap
+release and obstruction timeout still apply. The controller continues to apply
+spring forces; it never sets body transforms or changes the requested distance.
+While looking down, the monitor can stay farther than the preferred 1 m until
+the aim is raised enough to lift it safely. Camera/prop interpolation, collision
+shapes/layers, reach, wheel, spring, mass, rotation, throw and kick tuning are unchanged.
+
+F3 now shows aimed collider → resolved pickup body, physical surface distance,
+eligibility/rejection reason, occluder, player overlap and whether E is queued.
+The latest attempt includes its count, physics tick and outcome, distinguishing
+an accepted hold from a later release. Holding diagnostics show when the target
+is player-limited. Preview queries do not modify transforms, input, hold caches
+or attempt state. Pickup and preview share eligibility code and pure bounds
+queries. The preview ray looks beyond reach to explain `out_of_reach`; actual
+eligibility remains capped at 1.60 m from the physical eye with its visibility check.
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File tests/run_pickup_targeting.ps1 -Godot 'C:\path\to\Godot_console.exe'
+powershell -NoProfile -ExecutionPolicy Bypass -File tests/run_pickup_targeting.ps1 -Godot 'C:\path\to\Godot_console.exe' -FrameRates 30 -Render
+```
+
+The focused suite passes 112 checks at each 30/120/180 FPS clock and another
+112 in the rendered smoke run: one actual E press,
+flat/front/back/side/upside-down monitors, different angles and stances, a nearby
+wall, the fallen monitor beside the real bed/furniture, desk monitor, bottle and
+chair, stable holding, look/lift, drop/re-pickup/charged throw, read-only diagnostics,
+1.59/1.61 m boundaries, physical overlap/frozen-body rejection and thin-corner
+parallax/occlusion. Seven existing suites pass another 430 checks. The rendered
+run captures F3 eligibility and held-monitor views. Logs/JSON/images stay in
+ignored `.validation/`; disposable probe scripts and intermediate traces are removed.
+
+Manual check: F5 → Play, press F3. Pick up the upright desk monitor, then drop it
+flat near the aisle. Aim at an exposed screen/housing surface within 1.60 m and
+press E once. It should stay held while looking down; raise the aim to lift it,
+then turn, E/RMB drop and charge/throw. Repeat on its side/upside down and near
+the bed/wall, then try crouch/prone, a bottle and the chair's solid back/seat.
+For a rejected attempt, read the surface distance, collider, reason and outcome.
+Standing near a floor object can still put its surface beyond 1.60 m; crouch or
+move closer. Genuine occlusion, existing player overlap and unsafe turns still
+reject/release. The unrelated certificate-store diagnostic remains.
+
+## Grab reliability and reach — Milestone #9A.9
+
+The bedside bottle was actually released, then fell under gravity. Before any
+behavior change, release logging reproduced `wall_clearance_below_minimum` in
+six of eight slow/fast lifts. Looking up brought the wall behind the cabinet into
+the clearance ray. Its safe shortened target (1.047–1.100 m) fell below the old
+1.1 m preferred minimum, triggering release after 0.05–0.43 seconds despite no
+player overlap, tracking failure or blocked sight line. Visual interpolation
+followed the real body. Removing that preferred-minimum rejection alone kept
+all eight original lifts held under the old distance settings.
+
+Collision-shortened holds now use the existing target-shape, swept-path, actual
+player-overlap and forward-side checks. Very small clearances still release, as
+do excessive tracking error and a sight obstruction lasting over 0.25 seconds.
+Normal physics contacts remain active against room geometry and other props.
+
+| Parameter | New value |
+| --- | ---: |
+| Pickup reach to the accessible surface | 1.60 m |
+| Preferred ordinary holding distance | 1.00 m |
+| Wheel minimum before size adjustment | 0.75 m |
+| Actual per-object minimum | max(0.75, bounds radius + player radius + 0.10) m |
+| Wheel maximum / step | 3.00 m / 0.15 m |
+
+Pickup retains the existing first-hit sight ray and physical-eye range/occlusion
+checks: a reachable surface can belong to a body whose centre is farther away,
+but walls/furniture block it. No camera/prop interpolation changes. The initial
+request is capped by pickup distance, then clamped for size; the unchanged spring
+pulls the body toward it without setting transforms. Larger props stay farther
+out (the chair is about 1.05 m). Mouse-wheel changes are still clamped; collision
+correction never writes back into the request. Spring/force/mass, rotation, kick,
+charge/throw and impact/destruction tuning remain unchanged.
+
+F3 retains distance/target diagnostics and now displays the last release reason
+and tick. `PhysicsGrabber.last_release` stores the full distance/clearance/contact
+snapshot plus body, position and velocity. Enable `log_release_reasons` on the
+Grabber for `GRAB RELEASE:` console records. Reasons distinguish E/RMB/manual
+drop, throw, menu/transition, Escape/focus/cursor release, removal/destruction,
+player overlap, unsafe target/path, body behind camera, tracking error and the
+obstruction timeout. Logging is opt-in; the last reason remains available in F3.
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File tests/run_grab_reliability.ps1 -Godot 'C:\path\to\Godot_console.exe'
+powershell -NoProfile -ExecutionPolicy Bypass -File tests/run_grab_reliability.ps1 -Godot 'C:\path\to\Godot_console.exe' -FrameRates 30 -Render
+```
+
+Godot 4.7.2: **87 checks pass at 30/120/180 FPS clocks and in one rendered run**.
+They cover the original bedside bottle positions at slow/fast lift rates, the
+old-distance regression, monitor/chair, 1.59/1.61 m surface boundaries, occlusion,
+standing/crouch/prone, rapid look, wheel bounds, rotation, E/RMB, charge/throw,
+actual unsafe clearances/obstruction, removal and two pause/restart/menu cycles.
+Ordinary bottle/monitor settle near 1 m; tight wall clearance can shorten it
+temporarily without release or request drift. Initial support contacts retain
+about 1 cm of existing solver tolerance. Six focused suites pass another 343
+checks. The camera/hold-distance test fixtures were brought within the new reach;
+camera timing assertions and runtime interpolation code are unchanged. The runner
+rejects failed assertions and unexpected engine errors. Logs/JSON/screenshots use
+ignored `.validation/`; the unrelated certificate-store diagnostic remains.
+
+Manual check: F5 → Play. Approach the bedside bottle from the aisle, about one
+metre in front of the cabinet. Aim at the bottle, E, then lift slowly and quickly
+without scrolling; also turn beside the bed/wall. F3 should keep `Held: yes`
+while space is safe. Repeat with the monitor and chair, using visible solid
+surfaces rather than gaps between chair parts. Try just-inside/outside reach and
+an object behind furniture, then crouch/prone, wheel in/out, R rotation, E/RMB,
+charged throws and pause/restart. Extremely tight space or turning the body behind
+the player may still safely release it; inspect the recorded reason.
+
+## Held object distance stability — Milestone #9A.8
+
+Close pickups previously always requested the exported preferred distance (2 m),
+even when the monitor's collision centre was much closer. The spring drove it
+outward as the view turned and desk/wall clearance changed. Camera rotation did
+not change the request; the request was already too far away. The monitor's local
+hold centre remains `(0, 0.305, 0)`; its stand/pivot and screen hit point are not
+the distance reference. Visual interpolation was following the physical motion.
+
+Pickup now caps the initial preferred distance at the measured camera-to-collision
+centre distance. The existing size/player minimum (at least 1.1 m), maximum and
+2 m preference for farther pickups remain. After pickup, only wheel input changes
+the request. Collision clearance may temporarily shorten/lift the physical target;
+it does not write back to the requested distance. Spring, mass/force caps, rotation,
+throwing, player safety and both interpolation systems remain unchanged.
+
+F3 adds a read-only snapshot at the existing 5 Hz refresh: requested distance,
+physical collision-centre and pivot distances, displayed centre distance, last
+physics target position/distance/error, local centre, clearance collider, cached
+solver-contact count, blocked sight line and player overlap. Collision point counts
+come from existing ImpactBody contact tracking; -1 means unavailable on other bodies.
+
+```powershell
+# Use an isolated APPDATA, as with the other settings-writing/gameplay suites.
+godot --headless --path . --fixed-fps 120 --script res://tests/held_distance_smoke.gd -- --output=headless_120
+godot --path . --fixed-fps 30 --script res://tests/held_distance_smoke.gd -- --render --output=render_30
+```
+
+52 checks pass at each 30/120/180 render clock and in one rendered smoke run.
+The real desk monitor now retains its 1.506 m pickup distance instead of moving
+out to about 1.80 m on the reproduced turn. In open space, a 1.25 m pickup previously
+settled at 2 m with both old (45/12) and current (160/24) spring tuning; it now
+settles at 1.25 m with both. The stronger spring accelerated the existing error;
+it did not introduce it. Rapid yaw/pitch produces about 2–4 cm of temporary radial
+lag in the open fixtures, then settles back. A blocked 2 m request temporarily
+targets 1.492 m and returns to 2 m when cleared. Wheel, R rotation, throws, minimum
+clearance and farther pickups are checked. JSON and a rendered F3 snapshot go to
+ignored `.validation/`.
+
+Existing feel/manipulation/charge/camera/prop/crosshair suites pass, as does the
+restart suite at its documented 30 clock. Its one-render-frame impulse fixture
+is not reliable above 60 FPS. The extra throw suite passes its behavior checks
+but reports a shutdown resource leak, reproduced with the pre-fix scripts too.
+Those test issues are unchanged. The unrelated certificate-store diagnostic remains.
+
+Manual reproduction: F5 → Play. Approach the desk from its left/front, aim at
+the monitor screen and press E with its centre roughly 1.3–1.5 m away. Press F3,
+then yaw/pitch rapidly and lift it clear of the desk without scrolling. The
+request should remain at pickup distance and actual distance should recover after
+contact/lag. Check near walls, then wheel in/out, R + mouse, drop and charged throw.
+Very close pickups still move out to the existing safety minimum; unsafe turns
+still release. A monitor retains its world orientation, so turning can change its
+apparent width even at a constant measured distance.
+
+## Restart lifecycle — Milestone #9A.7
+
+Restart removes the old room before its queued deletion, then immediately adds
+the replacement. Until deletion, the old prop-smoothing helper still receives
+the SceneTree's `node_added` signal. Its deferred registration previously queried
+`get_world_3d()` on the detached old grabber while inspecting a new room prop.
+Registration now returns if the helper/owner has left the tree or its deferred
+node is no longer valid. Interpolation math, camera/HUD, transitions and physics
+behavior are unchanged.
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File tests/run_restart_lifecycle.ps1 -Godot 'C:\path\to\Godot_console.exe'
+# Add -Headless for the non-rendered check.
+```
+
+The runner isolates settings and fails on engine errors as well as failed
+assertions. Godot 4.7.2: 78 checks pass in both rendered and headless runs across
+four Play → Pause → Restart → Main Menu → Play cycles. Each teardown includes
+moving room props and four tumbling fragments from a real bottle/wall collision.
+Checks cover pause/resume, repeated activation, old-node deletion, fresh prop
+registration, camera references and centred crosshair. The rendered baseline
+logged 32 world-registration errors; the fixed lifecycle run logs none. Camera,
+prop-smoothing and crosshair regressions pass another 126 headless checks.
+The original rendered menu suite also passes all 50 checks without registration
+errors (the same baseline suite previously logged 32).
+Logs and a rendered snapshot are in ignored `.validation/`.
+
+Manual check: F5 → Play, throw a bottle against a wall and move another prop.
+Esc → Resume, then Esc → Restart while props/fragments are moving. Repeat
+Esc → Main Menu → Play several times. Check cursor capture, centred aim and
+smooth motion; the debugger should show no world-registration errors.
+
+## Crosshair stability
+
+The crosshair and throw-charge ring stay at their native screen-centre anchors.
+There is one crosshair Label, with its original appearance. The HUD no longer
+adds `aim_screen_offset` from a projected physics-camera hit. That offset cycled
+between the stepped physical eye and interpolated visual eye during movement,
+moving the label through fractional pixels. Stationary and wall-blocked movement
+had no offset, matching the reported symptom. The old offset remains available
+as a camera diagnostic; it does not position the HUD.
+
+Pickup and kick share a sight ray from the displayed eye in the gameplay camera's
+immediate look direction. Its hit projects to the fixed crosshair. Physical range
+is still measured from the original gameplay camera; a second visibility check
+prevents the eye offset reaching around an obstruction. Kick foot/cone/height
+checks, hold targets, rotation, throw, input, physics and camera/prop smoothing
+are unchanged. No HUD elements, fonts, rendering options or dependencies changed.
+
+```powershell
+godot --headless --path . --fixed-fps 180 --script res://tests/crosshair_smoke.gd -- --output=headless_180
+godot --path . --fixed-fps 180 --script res://tests/crosshair_smoke.gd -- --render --output=render_180
+```
+
+Use isolated APPDATA as with the other suites. 29 focused checks pass at each
+30/60/120/180 test clock; the rendered movement run adds five pixel-mask checks
+for 34 passes. Forward/strafe/walk+look, idle, pushing against a wall, charging
+while walking, pickup, occlusion and physical range are covered. Baseline forward
+and strafe HUD motion was 4.21/6.04 pixels; corrected motion is zero. Eight rendered
+crosshair masks per scenario are identical, with sight-hit projection error below
+0.0001 pixels. Existing kick/manipulation/charge/menu/camera checks pass (320 checks).
+Logs, JSON and before/after frame strips are in ignored `.validation/`.
+
+Manual check: F5 → Play, walk/strafe and look around, then hold W into a wall.
+The plus should stay still in all cases. Pick up nearby props, charge while
+walking, drop and kick them; targeting should follow the centred plus and obey
+the existing range/obstruction rules. Native graphics here run around 32 FPS;
+the 180-clock renderer test proves stable output pixels, not monitor persistence
+or physical display pacing at 180 Hz.
+
+## Physics feel polish — Milestone #9A.6
+
+Small/medium held objects now use spring strength **160** (was 45) and damping
+**24** (was 12). The existing 50 m/s² acceleration and 240 N force limits remain;
+large masses still accelerate more slowly when force-limited. The controller applies
+forces at 60 Hz, retaining physical lag/contact response. Distance, rotation, throw
+charge/speeds, drop, kick, input and both interpolation systems are unchanged.
+
+Brittle fragments inherit post-contact motion, then receive one linear and one
+angular impulse in their first physics callback, after mass/inertia initialization.
+The strongest confirmed contact supplies world position, surface normal, incoming
+direction and pre-clamp severity. The fan spreads away from the impact point,
+continues glancing travel and rebounds away from the struck surface. Missing impact
+context uses source motion/origin and the material threshold as a bounded fallback.
+
+| Tuning | Glass | Ceramic | Other material default |
+| --- | ---: | ---: | ---: |
+| `fragment_scatter_speed` (base m/s) | 2.8 | 2.1 | 1.8 |
+| `fragment_scatter_spin` (base rad/s) | 5.0 | 4.0 | 3.5 |
+| `fragment_bounce` | 0.16 | 0.10 | 0.10 |
+
+Edit the existing `resources/materials/*.tres` resources. Base scatter/spin scale
+with `sqrt(severity / break_threshold)`, capped at 2×. The scatter component also
+has a 6% impact-energy budget. Total launch velocity/spin remain capped at 6 m/s
+and 7 rad/s. Four fragments, safe placement, CCD, sweeps and supported settling
+are retained. The sweep remembers incoming speed for up to three ticks; only a
+matching real contact restores restitution, capped at 0.9 m/s outward speed.
+Held shards clear that hint. Durable materials keep their existing staged states;
+they do not gain fragmentation. No new managers, effects or room physics objects.
+
+Focused tests (use isolated APPDATA as with the existing suites):
+
+```powershell
+godot --headless --path . --fixed-fps 60 --script res://tests/physics_feel_smoke.gd -- --output=headless_60
+godot --path . --fixed-fps 30 --script res://tests/physics_feel_smoke.gd -- --render --output=render_30
+```
+
+Run the headless case with 30/60/120/180 test clocks to repeat the FPS check.
+JSON metrics and rendered screenshots go to ignored `.validation/`.
+The fixture compares the old/new spring using the real bottle, 5 kg monitor and
+8 kg chair; rapid-look input follows the same 60-Hz path at every render rate.
+It includes a 7-cm wall, head-on/glancing glass/ceramic fractures, confirmed contact
+data, impulse caps, bounce, sleep, menu pause/resume and three restarts.
+
+Godot 4.7.2 validation: **72 checks pass at each of 30/60/120/180 render clocks**,
+plus 72 checks in the rendered 30-clock smoke. Bottle/monitor reach 90% of an aim
+step in 317 ms (previously 517 ms); chair takes 350 ms (previously 533 ms). Rapid
+aim lag decreases 20–23%, with no measured step overshoot. All four clocks give
+the same response timings. Glass/ceramic head-on and glancing fixtures spread
+0.84–0.97 m, bounce, stay on the correct wall/floor side and sleep within eight
+seconds. Existing impact/kick/manipulation/charge/stabilization/contact suites
+pass 422 checks; menu/prop-smoothing guards pass 48/37 more. Both interpolation
+files, player movement, project settings and the physics fixture are unchanged.
+
+The rendered restart registration error recorded during #9A.6 is fixed in #9A.7
+above. The sandbox certificate-store diagnostic remains unrelated to gameplay.
+Native rendering here is around 32 FPS; forced render clocks establish simulation
+behavior, not high-refresh display pacing.
+
+Manual playtest: F5 → Play. Grab the bottle, monitor and chair in turn; sweep the
+mouse quickly left/right and stop sharply. Expect quicker light/medium following,
+a little lag and more resistance from the chair. Try R rotation, wheel distance,
+tap/charged throws, RMB drop/cancel and empty-hand kicks. Throw/kick fragile props
+head-on and diagonally into a wall and the floor. Watch the fan, tumble and small
+bounces, then wait for sleep and re-grab/kick a shard. Repeat near furniture, pause
+mid-action and restart several times. Static decorations remain static. Tight
+holds can still release conservatively and normal solver contact slop remains.
+
+## Physics prop smoothing — Milestone #9A.5
+
+`PropVisualInterpolation` is a single presentation helper owned by the grabber.
+It discovers grabbable rigid bodies and their meshes, captures consecutive physics
+poses, and submits interpolated position/rotation directly to RenderingServer before
+drawing. Physics stays at 60 Hz; the render fraction comes from Godot. Body transforms,
+colliders, mesh node offsets/paths, interaction rays, forces and the camera are unchanged.
+No gameplay FPS limit or refresh assumption is introduced. Native project-wide
+interpolation remains disabled to preserve the existing camera timing setup.
+
+Spawn history begins after final placement. External transform writes reset history;
+future scripted teleports *inside a physics callback* should also call the helper's
+`reset(body)` after placement. Restart/deletion discard history. Pause keeps the
+displayed pose; resume rebuilds history over at most one physics tick. Brittle fragments
+inherit the source's last displayed offset without changing their physical placement
+or velocities. Damage-state visibility remains native. Resting props stop submitting
+mesh transforms once their final pose is displayed.
+
+A compound-shape clearance check rejects added penetration into static World
+surfaces beyond endpoint contact tolerance. That safety fallback can briefly show
+the current physics pose during tight rotating contacts. Dynamic contacts retain
+the existing solver tolerances; this is visual interpolation, not a new collision
+solver. Visuals may lag colliders by up to one physics tick (16.7 ms).
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File tests/run_prop_frame_rates.ps1 -Godot '<Godot executable>'
+powershell -NoProfile -ExecutionPolicy Bypass -File tests/run_prop_frame_rates.ps1 -Godot '<Godot executable>' -Render
+powershell -NoProfile -ExecutionPolicy Bypass -File tests/run_prop_frame_rates.ps1 -Godot '<Godot executable>' -RealTime
+```
+
+The focused matrix covers 30/60/120/180 render clocks, held/throw/kick actions,
+movable furniture, monitor falls/sleep, fragments, teleport, pause/resume and repeated
+recreation. Render runs also compare screenshot pixel centres with interpolated and
+physical positions. JSON, logs and screenshots go to ignored `.validation/`, using
+isolated APPDATA. Fixed clocks test transforms independently of achieved wall FPS;
+use `-RealTime -Render` to check presentation on your own hardware.
+
+Godot 4.7.2: all **136 headless / 142 rendered fixed-clock checks** pass, plus
+136 real-time headless checks and 32 real-time rendered checks at a 30-FPS cap.
+The controlled moving body has zero repeated visual poses at every tested rate;
+at 120/180 clocks its physics position repeats on 29/59 sampled frame transitions.
+Rendered pixel centres match the smoothed pose within 0.05–0.12 pixels on average.
+Physics, kick, manipulation, destruction, camera and rendered menu regressions pass.
+Native graphics here run around 32 FPS. Real-time headless caps reach about
+30/60/120 FPS; the requested 180 cap reaches about 145. High-clock render checks
+prove transform submission, not high-refresh physical display presentation.
+
+Manual playtest: F5 → Play; pick up and walk with a bottle, throw it, kick nearby
+props, move the chair, knock over the monitor, and watch objects settle. Repeat near
+walls/furniture, pause/resume during motion, then restart several times. Compare at
+30/60/120/180 caps supported by your hardware. Watch for contact fallback steps and
+check that aiming, object charge/rotation, damage and search still behave normally.
+
+## Camera smoothness across PC frame rates — Milestones #9A.4 / #9A.5
+
+The active `VisualCamera3D` interpolates position between consecutive physics eye
+positions on render frames. Physics remains **60 Hz**. The camera uses Godot's
+physics interpolation fraction; pause/resume transitions use elapsed seconds and
+one physics-tick duration. There is no render FPS target, frame-count multiplier
+or display-refresh assumption in gameplay. Mouse-look rotation is copied in the
+existing input callback without rotational smoothing. Global physics interpolation
+remains disabled, and movement/interaction tuning is unchanged.
+
+The original `Player/Camera3D` supplies gameplay look direction, physical range,
+hold/rotation/throw and search references. Pickup/kick sight rays use the displayed
+eye so their hits align with the fixed screen-centre crosshair and charge ring;
+physical-eye range/occlusion and kick reach rules still apply. A near-plane clearance
+sweep restricts unsafe visual eye paths. Scene entry/restart, external teleports
+and pause/resume reset history; pausing retains the displayed pose.
+
+The test suite runs the same elapsed-time scenarios at **30, 60, 75, 120, 144 and
+180 FPS**, with physics at 60 Hz throughout. Movement and mouse input paths use
+elapsed time, and assertions derive expected displacement from movement speed
+and render delta. Test durations and settling waits use seconds. At 30 FPS,
+multiple physics ticks occur between render frames; above 60 FPS, the view advances
+between physics ticks. The game makes no assumption that a PC has a 180-Hz display.
+
+Run the complete matrix (use `-Godot '<executable path>'` if Godot is off PATH):
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File tests/run_camera_frame_rates.ps1
+powershell -NoProfile -ExecutionPolicy Bypass -File tests/run_camera_frame_rates.ps1 -Render
+powershell -NoProfile -ExecutionPolicy Bypass -File tests/run_camera_frame_rates.ps1 -RealTime
+```
+
+The helper uses an isolated APPDATA for every case and restores the caller's
+APPDATA afterward. Default runs use `--fixed-fps` for reproducible simulation
+clocks; `-RealTime` uses only a frame cap and records actual elapsed frame timing.
+Combine `-RealTime -Render` to check real graphics/display pacing on your hardware.
+These flags configure test processes only; F5 gameplay has no imposed frame cap.
+Logs, timing JSON and per-rate screenshots go to ignored `.validation/`.
+
+Coverage includes walking + looking, immediate mouse rotation, constant movement
+speed, physics tick counts, crouch/prone/under-bed traversal, jump/landing, nearby
+pickup/hold/throw/kick, centred aiming, near-plane clearance, teleports,
+pause/resume, FOV and repeated room recreation. Every moving view sample advances
+at all six rates. Standing walking remains approximately 5.4 m/s; measured mean
+per-frame travel follows the render interval:
+
+| Render FPS | Mean walking travel per frame |
+| ---: | ---: |
+| 30 | 18.0 cm |
+| 60 | 9.0 cm |
+| 75 | 7.2 cm |
+| 120 | 4.5 cm |
+| 144 | 3.75 cm |
+| 180 | 3.0 cm |
+
+Godot 4.7.2 validation: **356 checks pass in each six-rate matrix** for headless
+fixed clocks, native rendered fixed clocks and real-time capped headless loops.
+The live graphics loop adds **58 passing checks** at about 32 FPS with variable
+frame intervals. All rates retain 60-Hz physics, approximately 5.4 m/s walking,
+zero repeated moving-view positions and immediate matching mouse orientation.
+The original gameplay/aim camera and physics fixture remain unchanged in #9A.5.
+Real-time caps at 30/60/75/120/144 achieved approximately those rates headlessly;
+the requested 180 cap achieved about 145 in this environment. The fixed-clock
+180 case still passed through both the engine loop and renderer. Cap settings and
+achieved wall FPS are reported separately so hardware limits remain visible.
+
+Physics correctness and stable interactions remain the priority at low FPS.
+Position interpolation has up to one physics tick (~16.7 ms) of visual delay;
+moving/held rigid props now use the presentation helper above. Mouse-only doubled
+edges and GPU/monitor frame-pacing effects require separate hardware observation.
+Fixed-clock graphics checks establish transform behavior, not physical presentation
+at their requested rates; this environment's native graphics runs around 32 FPS.
+
+Manual verification: F5 → Play, walk/turn past furniture, crouch/prone under the
+bed, jump/land, and handle nearby props using the centred reticle. Pause mid-stride
+and repeatedly Restart/Main Menu → Play. Compare different frame caps and window/
+fullscreen modes available on the PC; the monitor's own refresh rate can stay fixed.
+
 ## Main Menu, Pause & Settings — Milestone #9A.3
 
 F5 starts `scenes/main_menu.tscn`: Play, Settings and Quit. Mouse clicks,

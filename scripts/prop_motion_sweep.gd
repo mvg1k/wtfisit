@@ -19,6 +19,8 @@ func limit_velocity(body: RigidBody3D, velocity: Vector3, delta: float,
 	if not PhysicsServer3D.body_test_motion(body.get_rid(), _query, _result):
 		return velocity
 	ImpactBody.remember_sweep(body, _result, velocity)
+	if body is ImpactDebris:
+		body.remember_bounce(_result, velocity)
 	# One millimetre could leave a rotating body outside the contact manifold:
 	# it would creep forward after CCD clipped its speed, outliving the impact hint.
 	# A solver-sized overlap establishes contact on the next step. No teleport.

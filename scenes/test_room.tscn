@@ -1,20 +1,8 @@
-[gd_scene load_steps=62 format=3]
+[gd_scene format=3 uid="uid://chxa0kq2yr6n8"]
 
 [ext_resource type="PackedScene" path="res://scenes/player.tscn" id="1"]
 [ext_resource type="PackedScene" path="res://scenes/debug_overlay.tscn" id="2"]
 [ext_resource type="PackedScene" path="res://scenes/props/physics_prop.tscn" id="3"]
-
-[sub_resource type="StandardMaterial3D" id="FloorMaterial"]
-albedo_color = Color(0.29, 0.32, 0.35, 1)
-roughness = 0.95
-
-[sub_resource type="StandardMaterial3D" id="WallMaterial"]
-albedo_color = Color(0.58, 0.60, 0.62, 1)
-roughness = 0.9
-
-[sub_resource type="StandardMaterial3D" id="TableMaterial"]
-albedo_color = Color(0.37, 0.39, 0.41, 1)
-roughness = 0.9
 
 [sub_resource type="Environment" id="RoomEnvironment"]
 background_mode = 1
@@ -22,464 +10,322 @@ background_color = Color(0.16, 0.18, 0.21, 1)
 ambient_light_source = 3
 ambient_light_color = Color(0.85, 0.89, 1, 1)
 ambient_light_energy = 0.65
-tonemap_mode = 0
+
+[sub_resource type="StandardMaterial3D" id="FloorMaterial"]
+albedo_color = Color(0.29, 0.32, 0.35, 1)
+roughness = 0.95
 
 [sub_resource type="BoxMesh" id="FloorMesh"]
-size = Vector3(12, 0.4, 10)
 material = SubResource("FloorMaterial")
+size = Vector3(12, 0.4, 10)
 
 [sub_resource type="BoxShape3D" id="FloorShape"]
 size = Vector3(12, 0.4, 10)
 
+[sub_resource type="StandardMaterial3D" id="WallMaterial"]
+albedo_color = Color(0.58, 0.6, 0.62, 1)
+roughness = 0.9
+
 [sub_resource type="BoxMesh" id="BackWallMesh"]
-size = Vector3(12.4, 4.4, 0.4)
 material = SubResource("WallMaterial")
+size = Vector3(12.4, 4.4, 0.4)
 
 [sub_resource type="BoxShape3D" id="BackWallShape"]
 size = Vector3(12.4, 4.4, 0.4)
 
 [sub_resource type="BoxMesh" id="FrontWallMesh"]
-size = Vector3(12.4, 4.4, 0.4)
 material = SubResource("WallMaterial")
+size = Vector3(12.4, 4.4, 0.4)
 
 [sub_resource type="BoxShape3D" id="FrontWallShape"]
 size = Vector3(12.4, 4.4, 0.4)
 
 [sub_resource type="BoxMesh" id="LeftWallMesh"]
-size = Vector3(0.4, 4.4, 10)
 material = SubResource("WallMaterial")
+size = Vector3(0.4, 4.4, 10)
 
 [sub_resource type="BoxShape3D" id="LeftWallShape"]
 size = Vector3(0.4, 4.4, 10)
 
 [sub_resource type="BoxMesh" id="RightWallMesh"]
-size = Vector3(0.4, 4.4, 10)
 material = SubResource("WallMaterial")
+size = Vector3(0.4, 4.4, 10)
 
 [sub_resource type="BoxShape3D" id="RightWallShape"]
 size = Vector3(0.4, 4.4, 10)
 
 [sub_resource type="BoxMesh" id="CeilingMesh"]
-size = Vector3(12, 0.2, 10)
 material = SubResource("WallMaterial")
+size = Vector3(12, 0.2, 10)
 
 [sub_resource type="BoxShape3D" id="CeilingShape"]
 size = Vector3(12, 0.2, 10)
 
+[sub_resource type="StandardMaterial3D" id="TableMaterial"]
+albedo_color = Color(0.37, 0.39, 0.41, 1)
+roughness = 0.9
+
 [sub_resource type="BoxMesh" id="TableTopMesh"]
-size = Vector3(5, 0.18, 1.5)
 material = SubResource("TableMaterial")
+size = Vector3(5, 0.18, 1.5)
 
 [sub_resource type="BoxShape3D" id="TableTopShape"]
 size = Vector3(5, 0.18, 1.5)
 
 [sub_resource type="BoxMesh" id="TableLeg1Mesh"]
-size = Vector3(0.16, 0.72, 0.16)
 material = SubResource("TableMaterial")
+size = Vector3(0.16, 0.72, 0.16)
 
 [sub_resource type="BoxShape3D" id="TableLeg1Shape"]
 size = Vector3(0.16, 0.72, 0.16)
 
 [sub_resource type="BoxMesh" id="TableLeg2Mesh"]
-size = Vector3(0.16, 0.72, 0.16)
 material = SubResource("TableMaterial")
+size = Vector3(0.16, 0.72, 0.16)
 
 [sub_resource type="BoxShape3D" id="TableLeg2Shape"]
 size = Vector3(0.16, 0.72, 0.16)
 
 [sub_resource type="BoxMesh" id="TableLeg3Mesh"]
-size = Vector3(0.16, 0.72, 0.16)
 material = SubResource("TableMaterial")
+size = Vector3(0.16, 0.72, 0.16)
 
 [sub_resource type="BoxShape3D" id="TableLeg3Shape"]
 size = Vector3(0.16, 0.72, 0.16)
 
 [sub_resource type="BoxMesh" id="TableLeg4Mesh"]
-size = Vector3(0.16, 0.72, 0.16)
 material = SubResource("TableMaterial")
+size = Vector3(0.16, 0.72, 0.16)
 
 [sub_resource type="BoxShape3D" id="TableLeg4Shape"]
 size = Vector3(0.16, 0.72, 0.16)
 
 [sub_resource type="BoxMesh" id="ImpactBlockMesh"]
-size = Vector3(1.5, 1.3, 1.2)
 material = SubResource("TableMaterial")
+size = Vector3(1.5, 1.3, 1.2)
 
 [sub_resource type="BoxShape3D" id="ImpactBlockShape"]
 size = Vector3(1.5, 1.3, 1.2)
-
-[sub_resource type="StandardMaterial3D" id="MediumBoxMaterial"]
-albedo_color = Color(0.53, 0.46, 0.36, 1)
-roughness = 0.85
-
-[sub_resource type="BoxMesh" id="MediumBoxMesh"]
-size = Vector3(0.6, 0.6, 0.6)
-material = SubResource("MediumBoxMaterial")
-
-[sub_resource type="BoxShape3D" id="MediumBoxShape"]
-size = Vector3(0.6, 0.6, 0.6)
-
-[sub_resource type="StandardMaterial3D" id="LightBlockMaterial"]
-albedo_color = Color(0.75, 0.73, 0.58, 1)
-roughness = 0.85
-
-[sub_resource type="BoxMesh" id="LightBlockMesh"]
-size = Vector3(0.48, 0.22, 0.36)
-material = SubResource("LightBlockMaterial")
-
-[sub_resource type="BoxShape3D" id="LightBlockShape"]
-size = Vector3(0.48, 0.22, 0.36)
 
 [sub_resource type="StandardMaterial3D" id="MugPlaceholderMaterial"]
 albedo_color = Color(0.7, 0.72, 0.74, 1)
 roughness = 0.85
 
-[sub_resource type="CylinderMesh" id="MugPlaceholderMesh"]
-top_radius = 0.14
-bottom_radius = 0.14
-height = 0.34
-radial_segments = 12
-material = SubResource("MugPlaceholderMaterial")
-
-[sub_resource type="ConvexPolygonShape3D" id="MugPlaceholderShape"]
-margin = 0.005
-points = PackedVector3Array(0.140000, -0.17, 0.000000, 0.121244, -0.17, 0.070000, 0.070000, -0.17, 0.121244, 0.000000, -0.17, 0.140000, -0.070000, -0.17, 0.121244, -0.121244, -0.17, 0.070000, -0.140000, -0.17, 0.000000, -0.121244, -0.17, -0.070000, -0.070000, -0.17, -0.121244, -0.000000, -0.17, -0.140000, 0.070000, -0.17, -0.121244, 0.121244, -0.17, -0.070000, 0.140000, 0.17, 0.000000, 0.121244, 0.17, 0.070000, 0.070000, 0.17, 0.121244, 0.000000, 0.17, 0.140000, -0.070000, 0.17, 0.121244, -0.121244, 0.17, 0.070000, -0.140000, 0.17, 0.000000, -0.121244, 0.17, -0.070000, -0.070000, 0.17, -0.121244, -0.000000, 0.17, -0.140000, 0.070000, 0.17, -0.121244, 0.121244, 0.17, -0.070000)
-
 [sub_resource type="BoxMesh" id="HandleTopMesh"]
-size = Vector3(0.22, 0.055, 0.065)
 material = SubResource("MugPlaceholderMaterial")
+size = Vector3(0.22, 0.055, 0.065)
 
 [sub_resource type="BoxShape3D" id="HandleTopShape"]
 size = Vector3(0.22, 0.055, 0.065)
 
 [sub_resource type="BoxMesh" id="HandleSideMesh"]
-size = Vector3(0.055, 0.25, 0.065)
 material = SubResource("MugPlaceholderMaterial")
+size = Vector3(0.055, 0.25, 0.065)
 
 [sub_resource type="BoxShape3D" id="HandleSideShape"]
 size = Vector3(0.055, 0.25, 0.065)
 
 [sub_resource type="BoxMesh" id="HandleBottomMesh"]
-size = Vector3(0.22, 0.055, 0.065)
 material = SubResource("MugPlaceholderMaterial")
+size = Vector3(0.22, 0.055, 0.065)
 
 [sub_resource type="BoxShape3D" id="HandleBottomShape"]
 size = Vector3(0.22, 0.055, 0.065)
 
-[sub_resource type="StandardMaterial3D" id="HeavyWeightMaterial"]
-albedo_color = Color(0.25, 0.29, 0.34, 1)
-roughness = 0.85
+[node name="TestRoom" type="Node3D" unique_id=339309281]
 
-[sub_resource type="BoxMesh" id="HeavyWeightMesh"]
-size = Vector3(0.55, 0.36, 0.45)
-material = SubResource("HeavyWeightMaterial")
-
-[sub_resource type="BoxShape3D" id="HeavyWeightShape"]
-size = Vector3(0.55, 0.36, 0.45)
-
-[sub_resource type="StandardMaterial3D" id="BallMaterial"]
-albedo_color = Color(0.49, 0.59, 0.63, 1)
-roughness = 0.85
-
-[sub_resource type="SphereMesh" id="BallMesh"]
-radius = 0.3
-height = 0.6
-material = SubResource("BallMaterial")
-
-[sub_resource type="SphereShape3D" id="BallShape"]
-radius = 0.3
-
-[sub_resource type="StandardMaterial3D" id="LargeCrateMaterial"]
-albedo_color = Color(0.5, 0.44, 0.37, 1)
-roughness = 0.85
-
-[sub_resource type="BoxMesh" id="LargeCrateMesh"]
-size = Vector3(1.1, 1.1, 1.1)
-material = SubResource("LargeCrateMaterial")
-
-[sub_resource type="BoxShape3D" id="LargeCrateShape"]
-size = Vector3(1.1, 1.1, 1.1)
-
-[sub_resource type="StandardMaterial3D" id="TallCanMaterial"]
-albedo_color = Color(0.51, 0.57, 0.52, 1)
-roughness = 0.85
-
-[sub_resource type="CylinderMesh" id="TallCanMesh"]
-top_radius = 0.2
-bottom_radius = 0.2
-height = 0.68
-material = SubResource("TallCanMaterial")
-
-[sub_resource type="CylinderShape3D" id="TallCanShape"]
-radius = 0.2
-height = 0.68
-
-[sub_resource type="StandardMaterial3D" id="SmallBoxMaterial"]
-albedo_color = Color(0.63, 0.57, 0.47, 1)
-roughness = 0.85
-
-[sub_resource type="BoxMesh" id="SmallBoxMesh"]
-size = Vector3(0.48, 0.48, 0.48)
-material = SubResource("SmallBoxMaterial")
-
-[sub_resource type="BoxShape3D" id="SmallBoxShape"]
-size = Vector3(0.48, 0.48, 0.48)
-
-[node name="TestRoom" type="Node3D"]
-
-[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+[node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=1553247404]
 environment = SubResource("RoomEnvironment")
 
-[node name="KeyLight" type="DirectionalLight3D" parent="."]
-rotation_degrees = Vector3(-65, -25, 0)
+[node name="KeyLight" type="DirectionalLight3D" parent="." unique_id=576652797]
+transform = Transform3D(0.90630776, 0.38302225, -0.17860618, 0, 0.42261824, 0.9063078, 0.42261827, -0.8213938, 0.3830222, 0, 0, 0)
 light_color = Color(1, 0.95, 0.88, 1)
 light_energy = 1.1
 shadow_enabled = true
 
-[node name="FillLight" type="OmniLight3D" parent="."]
-position = Vector3(0, 3.6, 1)
+[node name="FillLight" type="OmniLight3D" parent="." unique_id=425173104]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3.6, 1)
 light_energy = 1.2
 omni_range = 10.0
 
-[node name="Floor" type="StaticBody3D" parent="."]
-position = Vector3(0, -0.2, 0)
-collision_layer = 1
+[node name="Floor" type="StaticBody3D" parent="." unique_id=1411812458]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.2, 0)
 collision_mask = 6
 
-[node name="Mesh" type="MeshInstance3D" parent="Floor"]
+[node name="Mesh" type="MeshInstance3D" parent="Floor" unique_id=1920795375]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.012786269, 0.010327816, -0.013414383)
 mesh = SubResource("FloorMesh")
 
-[node name="Collision" type="CollisionShape3D" parent="Floor"]
+[node name="Collision" type="CollisionShape3D" parent="Floor" unique_id=1474693203]
 shape = SubResource("FloorShape")
 
-[node name="BackWall" type="StaticBody3D" parent="."]
-position = Vector3(0, 2.2, -5)
-collision_layer = 1
+[node name="BackWall" type="StaticBody3D" parent="." unique_id=2003968786]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.2, -5)
 collision_mask = 6
 
-[node name="Mesh" type="MeshInstance3D" parent="BackWall"]
+[node name="Mesh" type="MeshInstance3D" parent="BackWall" unique_id=310148153]
 mesh = SubResource("BackWallMesh")
 
-[node name="Collision" type="CollisionShape3D" parent="BackWall"]
+[node name="Collision" type="CollisionShape3D" parent="BackWall" unique_id=233642769]
 shape = SubResource("BackWallShape")
 
-[node name="FrontWall" type="StaticBody3D" parent="."]
-position = Vector3(0, 2.2, 5)
-collision_layer = 1
+[node name="FrontWall" type="StaticBody3D" parent="." unique_id=1678633651]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.2, 5)
 collision_mask = 6
 
-[node name="Mesh" type="MeshInstance3D" parent="FrontWall"]
+[node name="Mesh" type="MeshInstance3D" parent="FrontWall" unique_id=95158127]
 mesh = SubResource("FrontWallMesh")
 
-[node name="Collision" type="CollisionShape3D" parent="FrontWall"]
+[node name="Collision" type="CollisionShape3D" parent="FrontWall" unique_id=905273886]
 shape = SubResource("FrontWallShape")
 
-[node name="LeftWall" type="StaticBody3D" parent="."]
-position = Vector3(-6, 2.2, 0)
-collision_layer = 1
+[node name="LeftWall" type="StaticBody3D" parent="." unique_id=1329562863]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6, 2.2, 0)
 collision_mask = 6
 
-[node name="Mesh" type="MeshInstance3D" parent="LeftWall"]
+[node name="Mesh" type="MeshInstance3D" parent="LeftWall" unique_id=792432358]
 mesh = SubResource("LeftWallMesh")
 
-[node name="Collision" type="CollisionShape3D" parent="LeftWall"]
+[node name="Collision" type="CollisionShape3D" parent="LeftWall" unique_id=1657622213]
 shape = SubResource("LeftWallShape")
 
-[node name="RightWall" type="StaticBody3D" parent="."]
-position = Vector3(6, 2.2, 0)
-collision_layer = 1
+[node name="RightWall" type="StaticBody3D" parent="." unique_id=1658077296]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6, 2.2, 0)
 collision_mask = 6
 
-[node name="Mesh" type="MeshInstance3D" parent="RightWall"]
+[node name="Mesh" type="MeshInstance3D" parent="RightWall" unique_id=458842103]
 mesh = SubResource("RightWallMesh")
 
-[node name="Collision" type="CollisionShape3D" parent="RightWall"]
+[node name="Collision" type="CollisionShape3D" parent="RightWall" unique_id=2063303482]
 shape = SubResource("RightWallShape")
 
-[node name="Ceiling" type="StaticBody3D" parent="."]
-position = Vector3(0, 4.5, 0)
-collision_layer = 1
+[node name="Ceiling" type="StaticBody3D" parent="." unique_id=311148456]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 4.5, 0)
 collision_mask = 6
 
-[node name="Mesh" type="MeshInstance3D" parent="Ceiling"]
+[node name="Mesh" type="MeshInstance3D" parent="Ceiling" unique_id=899272686]
 mesh = SubResource("CeilingMesh")
 
-[node name="Collision" type="CollisionShape3D" parent="Ceiling"]
+[node name="Collision" type="CollisionShape3D" parent="Ceiling" unique_id=2012419427]
 shape = SubResource("CeilingShape")
 
-[node name="TableTop" type="StaticBody3D" parent="."]
-position = Vector3(0, 0.8, -0.8)
-collision_layer = 1
+[node name="TableTop" type="StaticBody3D" parent="." unique_id=1799119058]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.8, -0.8)
 collision_mask = 6
 
-[node name="Mesh" type="MeshInstance3D" parent="TableTop"]
+[node name="Mesh" type="MeshInstance3D" parent="TableTop" unique_id=258060572]
 mesh = SubResource("TableTopMesh")
 
-[node name="Collision" type="CollisionShape3D" parent="TableTop"]
+[node name="Collision" type="CollisionShape3D" parent="TableTop" unique_id=984464156]
 shape = SubResource("TableTopShape")
 
-[node name="TableLeg1" type="StaticBody3D" parent="."]
-position = Vector3(-2.15, 0.36, -1.3)
-collision_layer = 1
+[node name="TableLeg1" type="StaticBody3D" parent="." unique_id=30250014]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.15, 0.36, -1.3)
 collision_mask = 6
 
-[node name="Mesh" type="MeshInstance3D" parent="TableLeg1"]
+[node name="Mesh" type="MeshInstance3D" parent="TableLeg1" unique_id=1319792844]
 mesh = SubResource("TableLeg1Mesh")
 
-[node name="Collision" type="CollisionShape3D" parent="TableLeg1"]
+[node name="Collision" type="CollisionShape3D" parent="TableLeg1" unique_id=872284601]
 shape = SubResource("TableLeg1Shape")
 
-[node name="TableLeg2" type="StaticBody3D" parent="."]
-position = Vector3(2.15, 0.36, -1.3)
-collision_layer = 1
+[node name="TableLeg2" type="StaticBody3D" parent="." unique_id=1438914432]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.15, 0.36, -1.3)
 collision_mask = 6
 
-[node name="Mesh" type="MeshInstance3D" parent="TableLeg2"]
+[node name="Mesh" type="MeshInstance3D" parent="TableLeg2" unique_id=1139836541]
 mesh = SubResource("TableLeg2Mesh")
 
-[node name="Collision" type="CollisionShape3D" parent="TableLeg2"]
+[node name="Collision" type="CollisionShape3D" parent="TableLeg2" unique_id=997602997]
 shape = SubResource("TableLeg2Shape")
 
-[node name="TableLeg3" type="StaticBody3D" parent="."]
-position = Vector3(-2.15, 0.36, -0.3)
-collision_layer = 1
+[node name="TableLeg3" type="StaticBody3D" parent="." unique_id=753669700]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.15, 0.36, -0.3)
 collision_mask = 6
 
-[node name="Mesh" type="MeshInstance3D" parent="TableLeg3"]
+[node name="Mesh" type="MeshInstance3D" parent="TableLeg3" unique_id=1082907000]
 mesh = SubResource("TableLeg3Mesh")
 
-[node name="Collision" type="CollisionShape3D" parent="TableLeg3"]
+[node name="Collision" type="CollisionShape3D" parent="TableLeg3" unique_id=361786539]
 shape = SubResource("TableLeg3Shape")
 
-[node name="TableLeg4" type="StaticBody3D" parent="."]
-position = Vector3(2.15, 0.36, -0.3)
-collision_layer = 1
+[node name="TableLeg4" type="StaticBody3D" parent="." unique_id=1938565040]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.15, 0.36, -0.3)
 collision_mask = 6
 
-[node name="Mesh" type="MeshInstance3D" parent="TableLeg4"]
+[node name="Mesh" type="MeshInstance3D" parent="TableLeg4" unique_id=647262628]
 mesh = SubResource("TableLeg4Mesh")
 
-[node name="Collision" type="CollisionShape3D" parent="TableLeg4"]
+[node name="Collision" type="CollisionShape3D" parent="TableLeg4" unique_id=9414893]
 shape = SubResource("TableLeg4Shape")
 
-[node name="ImpactBlock" type="StaticBody3D" parent="."]
-position = Vector3(3.8, 0.65, -2.9)
-collision_layer = 1
+[node name="ImpactBlock" type="StaticBody3D" parent="." unique_id=127144835]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3.8, 0.65, -2.9)
 collision_mask = 6
 
-[node name="Mesh" type="MeshInstance3D" parent="ImpactBlock"]
+[node name="Mesh" type="MeshInstance3D" parent="ImpactBlock" unique_id=922943320]
 mesh = SubResource("ImpactBlockMesh")
 
-[node name="Collision" type="CollisionShape3D" parent="ImpactBlock"]
+[node name="Collision" type="CollisionShape3D" parent="ImpactBlock" unique_id=426556783]
 shape = SubResource("ImpactBlockShape")
 
-[node name="MediumBox" parent="." instance=ExtResource("3")]
-position = Vector3(-1.65, 1.22, -0.65)
-mass = 2
+[node name="MediumBox" parent="." unique_id=1475510506 instance=ExtResource("3")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.65, 1.22, -0.65)
 
-[node name="Mesh" parent="MediumBox" index="0"]
-mesh = SubResource("MediumBoxMesh")
-
-[node name="Collision" parent="MediumBox" index="1"]
-shape = SubResource("MediumBoxShape")
-
-[node name="LightBlock" parent="." instance=ExtResource("3")]
-position = Vector3(-0.6, 1.04, -0.6)
+[node name="LightBlock" parent="." unique_id=802858615 instance=ExtResource("3")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.6, 1.04, -0.6)
 mass = 0.25
 
-[node name="Mesh" parent="LightBlock" index="0"]
-mesh = SubResource("LightBlockMesh")
-
-[node name="Collision" parent="LightBlock" index="1"]
-shape = SubResource("LightBlockShape")
-
-[node name="MugPlaceholder" parent="." instance=ExtResource("3")]
-position = Vector3(0.45, 1.08, -0.55)
+[node name="MugPlaceholder" parent="." unique_id=13812679 instance=ExtResource("3")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.45, 1.08, -0.55)
 mass = 0.45
 
-[node name="Mesh" parent="MugPlaceholder" index="0"]
-mesh = SubResource("MugPlaceholderMesh")
-
-[node name="Collision" parent="MugPlaceholder" index="1"]
-shape = SubResource("MugPlaceholderShape")
-
-[node name="HandleTop" type="MeshInstance3D" parent="MugPlaceholder"]
-position = Vector3(0.2, 0.1, 0)
+[node name="HandleTop" type="MeshInstance3D" parent="MugPlaceholder" unique_id=111520134]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.2, 0.1, 0)
 mesh = SubResource("HandleTopMesh")
 
-[node name="HandleTopCollision" type="CollisionShape3D" parent="MugPlaceholder"]
-position = Vector3(0.2, 0.1, 0)
+[node name="HandleTopCollision" type="CollisionShape3D" parent="MugPlaceholder" unique_id=1611126891]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.2, 0.1, 0)
 shape = SubResource("HandleTopShape")
 
-[node name="HandleSide" type="MeshInstance3D" parent="MugPlaceholder"]
-position = Vector3(0.285, 0, 0)
+[node name="HandleSide" type="MeshInstance3D" parent="MugPlaceholder" unique_id=36508874]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.285, 0, 0)
 mesh = SubResource("HandleSideMesh")
 
-[node name="HandleSideCollision" type="CollisionShape3D" parent="MugPlaceholder"]
-position = Vector3(0.285, 0, 0)
+[node name="HandleSideCollision" type="CollisionShape3D" parent="MugPlaceholder" unique_id=1657727392]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.285, 0, 0)
 shape = SubResource("HandleSideShape")
 
-[node name="HandleBottom" type="MeshInstance3D" parent="MugPlaceholder"]
-position = Vector3(0.2, -0.1, 0)
+[node name="HandleBottom" type="MeshInstance3D" parent="MugPlaceholder" unique_id=603792430]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.2, -0.1, 0)
 mesh = SubResource("HandleBottomMesh")
 
-[node name="HandleBottomCollision" type="CollisionShape3D" parent="MugPlaceholder"]
-position = Vector3(0.2, -0.1, 0)
+[node name="HandleBottomCollision" type="CollisionShape3D" parent="MugPlaceholder" unique_id=52851351]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.2, -0.1, 0)
 shape = SubResource("HandleBottomShape")
 
-[node name="HeavyWeight" parent="." instance=ExtResource("3")]
-position = Vector3(1.55, 1.1, -0.7)
-mass = 12
+[node name="HeavyWeight" parent="." unique_id=1905378370 instance=ExtResource("3")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.55, 1.1, -0.7)
+mass = 12.0
 
-[node name="Mesh" parent="HeavyWeight" index="0"]
-mesh = SubResource("HeavyWeightMesh")
-
-[node name="Collision" parent="HeavyWeight" index="1"]
-shape = SubResource("HeavyWeightShape")
-
-[node name="Ball" parent="." instance=ExtResource("3")]
-position = Vector3(-2.7, 0.34, 1)
+[node name="Ball" parent="." unique_id=575123030 instance=ExtResource("3")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.7, 0.34, 1)
 mass = 0.8
 
-[node name="Mesh" parent="Ball" index="0"]
-mesh = SubResource("BallMesh")
+[node name="LargeCrate" parent="." unique_id=1662327835 instance=ExtResource("3")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3.7, 0.57, -1.5)
+mass = 5.0
 
-[node name="Collision" parent="Ball" index="1"]
-shape = SubResource("BallShape")
-
-[node name="LargeCrate" parent="." instance=ExtResource("3")]
-position = Vector3(-3.7, 0.57, -1.5)
-mass = 5
-
-[node name="Mesh" parent="LargeCrate" index="0"]
-mesh = SubResource("LargeCrateMesh")
-
-[node name="Collision" parent="LargeCrate" index="1"]
-shape = SubResource("LargeCrateShape")
-
-[node name="TallCan" parent="." instance=ExtResource("3")]
-position = Vector3(2.8, 0.37, 1)
+[node name="TallCan" parent="." unique_id=46599459 instance=ExtResource("3")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.8, 0.37, 1)
 mass = 1.2
 
-[node name="Mesh" parent="TallCan" index="0"]
-mesh = SubResource("TallCanMesh")
+[node name="SmallBox" parent="." unique_id=1050653005 instance=ExtResource("3")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3.7, 1.38, -1.5)
+mass = 1.0
 
-[node name="Collision" parent="TallCan" index="1"]
-shape = SubResource("TallCanShape")
+[node name="Player" parent="." unique_id=688610080 instance=ExtResource("1")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.02, 3.25)
 
-[node name="SmallBox" parent="." instance=ExtResource("3")]
-position = Vector3(-3.7, 1.38, -1.5)
-mass = 1
-
-[node name="Mesh" parent="SmallBox" index="0"]
-mesh = SubResource("SmallBoxMesh")
-
-[node name="Collision" parent="SmallBox" index="1"]
-shape = SubResource("SmallBoxShape")
-
-[node name="Player" parent="." instance=ExtResource("1")]
-position = Vector3(0, 0.02, 3.25)
-
-[node name="DebugOverlay" parent="." node_paths=PackedStringArray("grabber") instance=ExtResource("2")]
+[node name="DebugOverlay" parent="." unique_id=1319126128 node_paths=PackedStringArray("grabber") instance=ExtResource("2")]
 grabber = NodePath("../Player/Grabber")
-

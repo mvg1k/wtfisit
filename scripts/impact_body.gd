@@ -27,6 +27,7 @@ var _touching: Array[RID] = []
 var _swept_contacts: Dictionary = {}
 var _next_damage_frame: int = 0
 var _transition_pending: bool = false
+var _fracture_impact: Dictionary = {}
 
 
 func _ready() -> void:
@@ -52,6 +53,9 @@ func _integrate_forces(state: PhysicsDirectBodyState3D) -> void:
 	var strongest := 0.0
 	var strongest_speed := 0.0
 	var strongest_source := "contact"
+	var strongest_point := global_position
+	var strongest_normal := Vector3.ZERO
+	var strongest_direction := Vector3.ZERO
 	for index in state.get_contact_count():
 		var rid := state.get_contact_collider(index)
 		contacts.append(rid)
@@ -64,6 +68,7 @@ func _integrate_forces(state: PhysicsDirectBodyState3D) -> void:
 		var other := state.get_contact_collider_object(index)
 		var severity := 0.0
 		var source := "contact"
+		var direction := relative.normalized()
 		if speed >= impact_material.minimum_closing_speed:
 			severity = ImpactMaterial.severity(mass, _dynamic_mass(other), speed)
 		# Sweep hints are consumed only by a real contact with that same collider.
@@ -72,10 +77,16 @@ func _integrate_forces(state: PhysicsDirectBodyState3D) -> void:
 				severity = float(_swept_contacts[rid].severity)
 				speed = float(_swept_contacts[rid].speed)
 				source = "confirmed sweep"
+				var hinted_direction: Vector3 = _swept_contacts[rid].get("direction", Vector3.ZERO)
+				if not hinted_direction.is_zero_approx():
+					direction = hinted_direction
 		if severity > strongest:
 			strongest = severity
 			strongest_speed = speed
 			strongest_source = source
+			strongest_point = state.get_contact_local_position(index) # World space in Godot Physics.
+			strongest_normal = state.get_contact_local_normal(index)
+			strongest_direction = direction
 	for rid in contacts:
 		_swept_contacts.erase(rid)
 	_touching = contacts
@@ -97,6 +108,9 @@ func _integrate_forces(state: PhysicsDirectBodyState3D) -> void:
 	damage_state = State.BROKEN if impact_material.brittle or damage_state == State.CRACKED else State.CRACKED
 	_next_damage_frame = frame + ceili(DAMAGE_COOLDOWN_SECONDS * Engine.physics_ticks_per_second)
 	_transition_pending = true
+	# Snapshot the qualifying contact, not a later contact before deferred breakup.
+	_fracture_impact = {"position": strongest_point, "normal": strongest_normal,
+		"direction": strongest_direction, "severity": strongest}
 	_commit_state.call_deferred()
 
 
@@ -110,7 +124,8 @@ func _commit_state() -> void:
 		collision_layer = 0
 		collision_mask = 0
 		ImpactFragments.spawn(get_parent(), global_transform, fragment_extent, mass,
-			linear_velocity, angular_velocity, fragment_material, impact_material.kind == ImpactMaterial.Kind.GLASS)
+			linear_velocity, angular_velocity, fragment_material, impact_material.kind == ImpactMaterial.Kind.GLASS,
+			self, impact_material, _fracture_impact)
 		queue_free()
 	else:
 		_refresh_visuals()
@@ -152,12 +167,12 @@ static func remember_sweep(body: RigidBody3D, result: PhysicsTestMotionResult3D,
 		var speed := maxf(0.0, -relative.dot(result.get_collision_normal(index)))
 		var severity := ImpactMaterial.severity(body.mass, _dynamic_mass(other), speed)
 		if body is ImpactBody:
-			body._remember_contact(result.get_collider_rid(index), speed, severity)
+			body._remember_contact(result.get_collider_rid(index), speed, severity, relative.normalized())
 		if other is ImpactBody:
-			other._remember_contact(body.get_rid(), speed, severity)
+			other._remember_contact(body.get_rid(), speed, severity, -relative.normalized())
 
 
-func _remember_contact(rid: RID, speed: float, severity: float) -> void:
+func _remember_contact(rid: RID, speed: float, severity: float, direction: Vector3 = Vector3.ZERO) -> void:
 	if impact_material == null or damage_state == State.BROKEN or speed < impact_material.minimum_closing_speed:
 		return
 	# Bound the tiny cache even if a sleeping target receives many near misses.
@@ -168,4 +183,6 @@ func _remember_contact(rid: RID, speed: float, severity: float) -> void:
 		if float(previous.severity) > severity:
 			severity = float(previous.severity)
 			speed = float(previous.speed)
-	_swept_contacts[rid] = {"severity": severity, "speed": speed, "expires": Engine.get_physics_frames() + SWEEP_HINT_TICKS}
+			direction = previous.get("direction", direction)
+	_swept_contacts[rid] = {"severity": severity, "speed": speed, "direction": direction,
+		"expires": Engine.get_physics_frames() + SWEEP_HINT_TICKS}

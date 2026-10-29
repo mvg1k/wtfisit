@@ -311,13 +311,19 @@ func _test_impacts(material: String) -> void:
 		await _steps(900)
 		if not pieces.is_empty():
 			var shard := pieces[0] as ImpactDebris
-			# Approach the outermost shard diagonally from outside the pile:
-			# a route through neighbouring debris is correctly blocked by the foot.
+			# Scattering changes the pile layout. Find an actual clear approach;
+			# neighbouring shards must still block the real foot query.
 			for candidate: ImpactDebris in pieces:
 				if candidate.position.x < shard.position.x:
 					shard = candidate
 			_check(shard.sleeping, "Spawned shard settles before kick: " + material)
-			_player.position = Vector3(shard.position.x + 0.25, 0, shard.position.z + 0.8)
+			for direction in 16:
+				var angle := direction * TAU / 16
+				_player.position = Vector3(shard.position.x + cos(angle) * 0.83, 0,
+					shard.position.z + sin(angle) * 0.83)
+				_player.camera.look_at(shard.global_position)
+				if _grabber.get_kick_target().get("collider") == shard:
+					break
 			await _steps(3)
 			_player.camera.look_at(shard.global_position)
 			_check(_grabber.get_kick_target().get("collider") == shard,

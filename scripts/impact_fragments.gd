@@ -2,16 +2,20 @@ class_name ImpactFragments
 extends RefCounted
 
 const MAX_PIECES: int = 4
+const MAX_LINEAR_SPEED: float = 6.0
+const MAX_ANGULAR_SPEED: float = 7.0
+const SCATTER_ENERGY_FRACTION: float = 0.06
 # Fixed four-piece authored breakup pattern; no mesh cutting or recursive script.
 const OFFSETS: Array[Vector3] = [Vector3(-0.25, -0.05, -0.25), Vector3(0.25, -0.05, -0.25),
 	Vector3(-0.25, -0.05, 0.25), Vector3(0.25, -0.05, 0.25)]
 
 
 static func spawn(parent: Node, placement: Transform3D, extent: Vector3, total_mass: float,
-		linear: Vector3, angular: Vector3, material: Material, glass: bool = false) -> void:
+		linear: Vector3, angular: Vector3, material: Material, glass: bool = false,
+		visual_source: RigidBody3D = null, response: ImpactMaterial = null, impact: Dictionary = {}) -> void:
 	var surface := PhysicsMaterial.new()
 	surface.friction = 0.65
-	surface.bounce = 0.0
+	surface.bounce = response.fragment_bounce if response != null else 0.1
 	var occupied: Array[AABB] = []
 	for index in MAX_PIECES:
 		# Authored flat shard silhouettes, not a fracture algorithm. A matching
@@ -65,9 +69,50 @@ static func spawn(parent: Node, placement: Transform3D, extent: Vector3, total_m
 			if parent is Node3D else world_placement)
 		parent.add_child(piece)
 		# Post-contact motion, including tangential motion from the old body's spin.
-		# No explosion impulse; caps avoid energetic micro-debris and chain reactions.
-		piece.linear_velocity = (linear + angular.cross(offset)).limit_length(6.0)
-		piece.angular_velocity = angular.limit_length(7.0)
+		piece.linear_velocity = (linear + angular.cross(offset)).limit_length(MAX_LINEAR_SPEED)
+		piece.angular_velocity = angular.limit_length(MAX_ANGULAR_SPEED)
+		_scatter(piece, index, placement.origin, total_mass, linear, response, impact)
+		if is_instance_valid(visual_source) and visual_source.has_meta("prop_visual_interpolation"):
+			var reference: WeakRef = visual_source.get_meta("prop_visual_interpolation")
+			var visuals := reference.get_ref() as PropVisualInterpolation
+			if is_instance_valid(visuals):
+				visuals.seed_replacement(piece, visual_source)
+
+
+static func _scatter(piece: ImpactDebris, index: int, origin: Vector3, total_mass: float,
+		incoming: Vector3, response: ImpactMaterial, impact: Dictionary) -> void:
+	var threshold := response.break_threshold if response != null else 10.0
+	var severity := maxf(0.0, float(impact.get("severity", threshold)))
+	var strength := clampf(sqrt(severity / maxf(threshold, 0.1)), 0.0, 2.0)
+	var scatter_speed := response.fragment_scatter_speed if response != null else 1.8
+	var scatter_spin := response.fragment_scatter_spin if response != null else 3.5
+	# Bound added translation by a small share of the measured impact energy,
+	# plus material and total-speed caps. A harder hit never becomes an explosion.
+	var speed := minf(scatter_speed * strength,
+		sqrt(2.0 * severity * SCATTER_ENERGY_FRACTION / maxf(total_mass, 0.01)))
+	var normal: Vector3 = impact.get("normal", Vector3.ZERO)
+	normal = normal.normalized()
+	var direction: Vector3 = impact.get("direction", incoming.normalized())
+	if direction.is_zero_approx():
+		direction = -normal if not normal.is_zero_approx() else Vector3.UP
+	direction = direction.normalized()
+	if not normal.is_zero_approx() and direction.dot(normal) < 0.0:
+		direction = direction.bounce(normal) # Continue glancing motion, rebound from the surface.
+	var point: Vector3 = impact.get("position", origin)
+	var radial := piece.global_position - point
+	if not normal.is_zero_approx():
+		radial = radial.slide(normal)
+	if radial.is_zero_approx():
+		radial = Vector3.RIGHT.rotated(Vector3.UP, index * TAU / MAX_PIECES)
+	radial = radial.normalized()
+	var fan := (direction * 0.7 + radial * 0.65 + normal * 0.25).normalized()
+	if not normal.is_zero_approx() and fan.dot(normal) < 0.15:
+		fan = (fan.slide(normal) + normal * 0.15).normalized()
+	# Different deterministic axes fan the four pieces without an RNG or new bodies.
+	var axis := normal.cross(radial) + direction.cross(radial) * 0.3 \
+		+ Vector3(0.4, -0.3 if index % 2 else 0.3, 0.2 if index < 2 else -0.2)
+	axis = axis.normalized()
+	piece.queue_scatter(fan * speed, axis * scatter_spin * strength)
 
 
 static func _clear_placement(space: PhysicsDirectSpaceState3D, shape: Shape3D,

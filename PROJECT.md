@@ -12,6 +12,218 @@ and throwing household clutter provides play and stress relief.
 - Build small playable increments. No giant GameManager or speculative systems.
 - Primitive geometry, no external assets, plugins, or dependencies for now.
 
+## Tight-space pickup recovery — Milestone #9A.12
+
+- Reproduced the reported fields at 1.2469 m using the actual standing capsule
+  and full side-fallen monitor hull by the door, with zero player/world depth.
+  The original outward target enters `Shell/SouthLeftCollision`; a lateral exit
+  is safe. README records comparable poses; original user transforms are unknown.
+- Recovery now tries seven bounded straight directions, including lateral and
+  upward exits, using the unchanged full-shape sweep/contact-depth checks. F3
+  exposes direction/count and `no_safe_recovery_path` rejection. Planning occurs
+  only on pickup or visible 5 Hz F3 preview; the held physics loop validates its
+  selected path without replanning. Full local previews: 0.08–1.83 ms, 0.77 ms
+  average over 20 samples. No reach/LOS, spring, collider, target-clamp, camera,
+  interpolation or physics tuning changes. Rotation/curved escapes are outside
+  the bounded search; existing prone frontal wall-shortened clearance can still
+  reject with `no_target_clearance`, while a side approach passes.
+- `pickup_tight_smoke.gd` / strict runner pass 39 checks at 30/120/180 clocks and
+  a rendered run, including door geometry, three stances, upward/solid-lid cases,
+  native E/drop/throw and look. Nine regression suites pass another 595 checks,
+  including monitor/open-floor, bed box, bottle/chair, occlusion/range and restart.
+  Rejection fixtures now block all candidate exits; the old one-wall fixture
+  correctly recovers laterally. No unexpected engine errors; evidence is ignored
+  under `.validation/`.
+
+## Pickup overlap recovery — Milestone #9A.11
+
+- The old `body_overlaps_player` predicate queried current geometry with a 60 mm
+  margin. It conflated real capsule penetration and padding-only proximity;
+  proposed-target overlap was a separate check. Equivalent authored full-shape
+  reproductions: MovingBoxA surface 1.3334 m / 40 mm actual penetration; crouched
+  fallen monitor surface 1.1399 m / zero penetration / approximately 51 mm gap.
+  Original user transforms cannot be uniquely recovered from surface distance.
+  README records the measured capsule/body geometry and deterministic poses.
+- A padded overlap is eligible only with a verified horizontal outward exit.
+  Full-shape sweeps plus existing contact normals/depths prevent worsening
+  World/Props contacts; per-shape player depths must not increase. The existing
+  spring performs recovery, revalidated every physics tick with a one-second
+  timeout, then resumes ordinary #9A.10 target clamping. Tested exits take 8–19
+  ticks. Underfoot, inward-moving and blocked overlaps remain rejected; this is
+  deliberately a single-path recovery, not an escape planner. F3 distinguishes
+  exact current penetration, padded proximity, preferred/proposed-target overlap,
+  recovery status and rejection. No shape shrinking, global collision changes,
+  physics tuning, reach/LOS changes or interpolation edits.
+- `tests/pickup_overlap_smoke.gd` and strict-log runner pass 51 checks at each
+  30/120/180 fixed render clock and in a rendered 30-clock run. They use actual
+  room props and stance capsules, one native E press, safe/unsafe overlap,
+  partial-bed clearance and bed occlusion. Eight relevant regression suites pass
+  another 542 checks, including bottle/chair, drop/throw/look, interpolation,
+  kick and restart. The prior targeting rejection fixture now blocks the exit
+  instead of assuming every overlap must reject. No unexpected engine errors.
+
+## Reliable pickup targeting — Milestone #9A.10
+
+- Reproduction showed E was processed and the monitor's Props/4 collider resolved
+  to the correct parent RigidBody3D. Five of 28 accepted probe pickups released
+  immediately with `target_overlaps_player`: the preferred 1 m target entered the
+  capsule despite a clear current pose and reachable surface (1.545 m in the flat
+  reproduction). Angle changes altered this clearance result. Other misses were
+  genuine range/occlusion/overlap rejection, not missing E input or wrong layers.
+- A player-overlapping preferred target can now be limited along the segment from
+  the clear current centre toward that target, using six exact overlap queries
+  and a small endpoint backoff. Only empty/upward-support ray hits permit this;
+  horizontal wall-shortening, final shape/path/forward and actual-overlap guards,
+  obstruction timeout and spring forces remain. Requested distance stays fixed;
+  down-look holds can remain farther out until the aim is safely raised. No
+  camera/prop interpolation, collision shape/layer, reach or physics tuning edits.
+- Pure bounds/eligibility queries feed both pickup and read-only F3 diagnostics:
+  aimed collider/resolved body, surface distance, eligibility/reason, occluder,
+  overlap and queued E state. Last attempt count/tick/outcome exposes actual
+  acceptance versus release. Holding stats expose player-limited targets. A
+  longer preview ray diagnoses out-of-reach surfaces; physical reach remains
+  1.60 m with the existing physical-eye visibility gate.
+- `tests/pickup_targeting_smoke.gd` and strict-log runner cover 112 checks at
+  30/120/180 clocks: native E, all monitor poses/angles/low stances, nearby wall,
+  fallen monitor beside real bed/furniture, desk monitor, bottle/chair, hold/look,
+  drops/re-pickup/throws, diagnostic purity and real range/occlusion/overlap/frozen
+  rejection, including eye-parallax guards. Seven existing suites pass 430 checks.
+  Rendered smoke also passes all 112 checks and captures F3 eligibility/holding
+  views. Evidence uses `.validation/`;
+  disposable probes/intermediate traces are removed. Commands, limits and manual
+  steps are in README. Existing unsafe-release rules and unrelated certificate
+  store diagnostic remain.
+
+## Grab reliability and reach — Milestone #9A.9
+
+- Diagnostic-only release logging reproduced the bedside bottle issue before
+  changing behavior: six of eight slow/fast lifts actually released with
+  `wall_clearance_below_minimum` after 0.05–0.43 s. The wall behind the cabinet
+  shortened the target to 1.047–1.100 m, below the old preferred 1.1 m minimum,
+  despite clear player shapes and sight. This was a physical release, not visual
+  interpolation or a weak spring. Removing that rejection alone kept all eight
+  lifts held with the old distance settings. Collision-shortened holds now rely
+  on existing shape/path/player checks, small-clearance and tracking guards and
+  the unchanged 0.25 s sight-obstruction timeout. Physics contacts remain active.
+- Pickup reach is 1.6 m to the first accessible surface, with existing physical
+  range/visibility checks. Preferred hold is 1.0 m, base wheel minimum 0.75 m;
+  actual minimum remains max(base, collision-bounds radius + player radius + 0.1).
+  Wheel maximum/step remain 3.0/0.15 m. Size limits keep the chair near 1.05 m.
+  Existing pickup-distance cap prevents outward default drift; physical spring
+  motion pulls ordinary props smoothly toward 1 m. No transform snapping or
+  render-rate logic. Camera/prop interpolation, force/mass/torque/throw/kick and
+  impact/destruction tuning are unchanged.
+- `last_release` retains exact reason, tick and distance/target/collision/velocity
+  snapshot. Optional `log_release_reasons` prints it; F3 shows the last reason.
+  Every grabber release path is named, including explicit inputs, menus, focus,
+  clearance/path/player checks, tracking and obstruction. A one-shot held-body
+  exit callback records removal/destruction and clears the dying hold without
+  re-tracking it; explicit releases disconnect that callback.
+- `tests/grab_reliability_smoke.gd` and strict-log PowerShell runner: 87 passes at
+  each 30/120/180 clock and in one rendered run. Covers real bedside bottle,
+  monitor/chair, slow/fast lifts, legacy-distance root regression, boundary surface
+  reach/occlusion, three stances, wheel/look/rotation, drops/charge/throw, genuine
+  safety releases, removal and pause/restart/menu cycles. Six focused existing
+  suites pass 343 checks; two camera/hold-distance fixtures now fit the shorter
+  reach. Runtime protected systems remain unchanged. Evidence in `.validation/`;
+  commands/manual steps in README. Existing contact tolerance and unrelated
+  certificate-store diagnostic remain.
+
+## Held object distance stability — Milestone #9A.8
+
+- Close pickup always seeded the preferred 2 m request, regardless of actual
+  camera-to-collision-centre distance. Desk/wall clearance temporarily hid or
+  limited that outward spring pull; turning exposed it. Requested distance never
+  ratcheted during yaw/pitch. Monitor hold offset remains the collision-bounds
+  centre `(0, 0.305, 0)`, not its foot pivot or screen-hit offset. Both old and
+  current springs reproduce the bug; stronger tuning only makes it happen sooner.
+- Pickup now caps the preferred initial distance at measured centre distance,
+  retaining existing size/player safety clamps and farther-pickup preference.
+  Wheel remains the only normal request adjustment after pickup. No force,
+  damping, torque, throw, collision, camera or visual interpolation changes.
+- Opt-in `get_hold_diagnostics()` and F3 show requested/physical/pivot/displayed
+  distances, local centre, last physics target/error, clearance collider, cached
+  contact count, sight blockage and player overlap. Diagnostics never drive control.
+- `tests/held_distance_smoke.gd`: 52 checks pass at 30/120/180 clocks and rendered
+  at 30. Real desk pickup stays 1.506 m (previous turn ended around 1.80 m);
+  open pickup stays 1.25 m (previously 2 m). Rapid-look radial lag is about 2–4 cm,
+  settling without a permanent increase. Obstruction temporarily shortens a 2 m
+  target to 1.492 m, then returns to 2 m. Both spring tunings, wheel, R rotation,
+  throws, near safety clamp and far preference are covered. Protected systems
+  retain their regression checks. Evidence is in ignored `.validation/`.
+- Existing restart regression's one-frame impulse assertion needs its documented
+  30 clock; a 120 render clock can sample before physics. Extra throw regression
+  passes behavior assertions but has a pre-existing shutdown resource leak,
+  reproduced with baseline scripts. Neither test issue is changed in this fix.
+  Manual steps, diagnostic fields and commands are in README.
+
+## Restart lifecycle — Milestone #9A.7
+
+- The old room is removed, then queued for deletion before the new room enters.
+  Its still-live PropVisualInterpolation helper receives global `node_added`
+  events and deferred registrations for the replacement room. The old grabber
+  is already outside the tree/world; its world comparison caused the native
+  `get_world_3d()` registration error. `_register()` now rejects detached helpers,
+  invalid/detached owners and invalid deferred nodes before accessing a world.
+- No interpolation math, camera/HUD, transition code, interaction or physics
+  tuning changes. `tests/restart_lifecycle_smoke.gd` and its PowerShell runner
+  exercise four complete restart/menu cycles with moving props and real bottle
+  fragments, pause/resume, duplicate activation, fresh registration and deletion.
+  78 checks pass headless and rendered. The runner rejects engine errors even
+  when Godot exits successfully. Baseline rendered menu: 32 world-registration
+  errors; fixed lifecycle: zero. Camera/prop/crosshair regressions: 126 passes.
+  Evidence stays in ignored `.validation/`; manual steps and command in README.
+
+## Crosshair stability fix
+
+- The original HUD had one Label, but moved it and the charge ring every render
+  frame using `VisualCamera3D.aim_screen_offset`. Projecting a stepped physics-eye
+  hit through the interpolated view produced 4.21/6.04 px forward/strafe motion;
+  stationary and wall-blocked samples were stable. Native screen-centre anchors
+  now position both indicators; the camera offset is diagnostic only.
+- `PhysicsGrabber.get_aim_hit()` shares the displayed-eye sight line for pickup
+  and kick using the existing gameplay look direction. Original-camera distance
+  and visibility checks retain physical reach/occlusion; kick leg/cone/height
+  rules remain. Hold/throw/rotation, both interpolation scripts, player physics,
+  project settings and HUD scene/style are unchanged.
+- `tests/crosshair_smoke.gd`: 29 checks at each 30/60/120/180 clock, plus 34 in
+  the rendered movement run. Corrected HUD motion is zero; eight pixel masks per
+  scenario match. Sight-hit projection error is below 0.0001 px. Includes charging
+  while walking, pickup, obstruction/range and blocked movement. Existing kick,
+  manipulation, charge, menu and camera suites pass 320 checks. Logs/strips use
+  ignored `.validation/`. Physical monitor persistence remains a hardware check.
+
+## Physics feel polish — Milestone #9A.6
+
+- Only the existing hold spring exports change: strength 45 → 160, damping
+  12 → 24. The 50 m/s² acceleration and 240 N force limits preserve inertia and
+  heavier-prop resistance. Holding remains force-based at 60 Hz. Distance, torque,
+  charge/throw, RMB/drop, kick, movement and both interpolation scripts are unchanged.
+- Qualifying ImpactBody contacts snapshot world point/normal, incoming direction
+  and severity, including direction from confirmed pre-clamp sweep hints. The
+  existing spawner fans its four shards away from the impact point and off the
+  struck surface while retaining glancing motion and inherited post-contact motion.
+- ImpactMaterial adds `fragment_scatter_speed`, `fragment_scatter_spin`, and
+  `fragment_bounce`. Glass defaults are 2.8 m/s, 5 rad/s, 0.16; ceramic 2.1, 4,
+  0.10; other resources default to 1.8, 3.5, 0.10. Only existing brittle materials
+  fragment. Scatter/spin scale with sqrt(severity/threshold), at most 2×; a 6%
+  energy budget also limits the scatter velocity component. Launch caps stay
+  6 m/s and 7 rad/s. One impulse pair runs in the first debris physics callback
+  after mass/inertia initialization. Native spawn-time inverse mass is stale.
+- Debris remembers one imminent sweep collider/speed for at most three ticks.
+  A matching actual contact restores modest material restitution (outward speed
+  capped at 0.9 m/s), since the safety sweep removes incoming solver speed. Pickup
+  clears the hint. Placement, CCD, sweep geometry, four-body budget, supported
+  damping and normal sleep remain; no new manager, effects or static conversions.
+- `tests/physics_feel_smoke.gd` compares old/new tuning on bottle/monitor/chair,
+  rapid aim, thin-wall contact, head-on/glancing fractures, bounce/sleep and menu
+  pause/resume/restarts. 72 checks pass at each 30/60/120/180 render clock and in
+  the rendered 30-clock smoke. Bottle/monitor 90% response improves 517 → 317 ms;
+  chair 533 → 350 ms, without measured step overshoot. Six focused existing suites
+  pass 422 checks; menu and prop-smoothing guards pass another 48/37 checks.
+  The pre-existing rendered restart registration diagnostic recorded here was
+  subsequently fixed in #9A.7 above. See README for tuning and manual playtesting.
+
 ## Current tuning: movement and charged throws
 
 - Standing speed is 5.4 m/s (+20%); crouch stays 2.475 m/s and prone 1.125 m/s.
@@ -210,6 +422,44 @@ and throwing household clutter provides play and stress relief.
 
 ## Structure and conventions
 
+- Milestone #9A.4 adds `scripts/player_view_camera.gd` and `Player/VisualCamera3D`:
+  an independent active Camera3D with render-frame position interpolation only.
+  The original camera remains the authoritative gameplay orientation/range reference. Player
+  hooks capture eye position after movement/stance physics and copy mouse rotation
+  immediately; no movement, interaction or physics tuning changes. Global engine
+  interpolation stays disabled. Settings copy projection/FOV to the view.
+  Scene entry/restarts, direct small/large teleports and pause/resume clear history.
+  Pause preserves the displayed pose; resume transitions for at most one tick.
+  A presentation-only near-plane sphere sweep clips unsafe eye paths. The HUD
+  now stays at screen centre; pickup/kick sight rays use the displayed eye with
+  original-camera physical distance/visibility gates (see crosshair fix above).
+  Camera position has up to one tick of visual latency; moving rigid props now
+  use the separate mesh-only presentation helper. No global interpolation.
+- #9A.5 confirms the camera is independent of render FPS and display refresh:
+  engine interpolation fraction supplies position, while elapsed seconds supply
+  the resume transition. Gameplay has no imposed FPS limit or display assumptions.
+- `tests/camera_smoothness_smoke.gd`: elapsed-time scenarios across render rates,
+  proximity aiming/interactions, clearance, teleport and menu reset checks.
+  Tests/logs use isolated APPDATA and ignored `.validation/` output. A forced
+  render clock establishes transform cadence, not physical display pacing.
+  `tests/run_camera_frame_rates.ps1` runs 30/60/75/120/144/180 FPS with unchanged
+  60-Hz physics. Optional real-time caps exercise the uncoupled engine clock.
+  Test motion, waits and expected travel derive from seconds/render delta rather
+  than display-specific frame counts. Low FPS processes multiple physics ticks;
+  high FPS interpolates between them, retaining authoritative gameplay references.
+  #9A.5 validation: 356 checks in each six-rate matrix (headless fixed clock,
+  rendered fixed clock and real-time capped headless) pass, plus 58 checks in a
+  live variable graphics loop around 32 FPS. Measured walking speed stays 5.4 m/s;
+  the view advances on every moving frame, with matching immediate orientation.
+  Runtime camera/controller/settings/physics scene files are unchanged in this pass.
+  Real-time achieved rates match the 30–144 caps; the requested 180 cap reaches
+  about 145 here. Fixed-clock 180 still passes. Requested/achieved FPS are reported
+  separately; native graphics pacing is hardware-limited around 32 in this environment.
+  #9A.4 validation: 50 headless + 46 fullscreen rendered camera checks and 483
+  existing regression checks pass. Both walking modes advance on all 51 measured
+  intervals (~0.03 m/frame) while the logical eye repeats 34/51; orientation matches
+  immediately. Near aiming, bed/wall/furniture clearance and camera resets pass.
+  The existing edited physics fixture is preserved; prior diagnostics remain.
 - `scenes/main_menu.tscn`: F5 main scene for Milestone #9A.3. A small native
   Control menu shell launches the Gamer's Room under a pausable Gameplay node;
   the menu layer alone keeps processing while the SceneTree is paused. Main Menu
@@ -295,7 +545,8 @@ and throwing household clutter provides play and stress relief.
 - `scenes/player.tscn`, `scripts/player_controller.gd`: movement, stance and mouse capture.
 - `scripts/physics_grabber.gd`: interaction; exported references and tuning.
   As a child of Player, it consumes rotation mouse events before camera look.
-  Linear spring/held-rotation tuning remains unchanged; charge is local to the grabber.
+  #9A.6 tunes only linear spring strength/damping; held rotation remains unchanged.
+  Charge is local to the grabber.
 - `scenes/props/physics_prop.tscn`: reusable ordinary RigidBody3D with primitive
   mesh/collider, grabbable group, CCD, and sleeping enabled. No prop script.
 - `scenes/debug_overlay.tscn`, `scripts/debug_overlay.gd`: crosshair, controls,
@@ -310,6 +561,17 @@ and throwing household clutter provides play and stress relief.
   settling, suspended while held; at most four contact reports per awake piece.
 - `scripts/prop_rest.gd`: shared supported-rest eligibility, confirmed dynamic
   sleep and event-based registration/removal, owned by the room's grabber.
+- `scripts/prop_visual_interpolation.gd`: shared mesh-only position/rotation
+  interpolation for grabbable bodies at the engine render fraction. No body,
+  collider, interaction or camera transform writes; global interpolation stays
+  disabled and physics stays 60 Hz. Final placements reset history; physics-tick
+  teleports must call `reset(body)`. Spawn/restart/deletion and pause/resume are
+  handled, and brittle replacement meshes inherit the source's displayed offset.
+  Static World compound-shape clearance permits endpoint solver slop but rejects
+  added penetration. Its current-pose fallback can expose a contact step. Dynamic
+  contacts retain native solver tolerances and visuals lag at most one tick.
+  `tests/prop_smoothing_smoke.gd` / `tests/run_prop_frame_rates.ps1` cover
+  30/60/120/180 clocks, real interaction paths, sleep, fragments and pixel readback.
 - `scripts/prop_motion_sweep.gd`: shared fast-body protection and impact handoff.
 - `scenes/props/{ceramic,glass,wood,plastic,metal}_prop.tscn`, `monitor.tscn`:
   six reusable primitive examples. `tests/impact_smoke.gd` covers real contacts,

@@ -6,3 +6,6 @@ kind = 1
 brittle = true
 damage_threshold = 10.0
 break_threshold = 10.0
+fragment_scatter_speed = 2.8
+fragment_scatter_spin = 5.0
+fragment_bounce = 0.16

@@ -20,6 +20,8 @@ const RADII: Array[float] = [0.3, 0.3, 0.24]
 @export var push_force: float = 100.0
 @export var push_speed: float = 2.8
 
+@onready var visual_camera: PlayerViewCamera = $VisualCamera3D
+
 var mouse_captured: bool = false
 var stance: Stance = Stance.STANDING
 var _prone_requested: bool = false
@@ -38,6 +40,7 @@ func _ready() -> void:
 	platform_on_leave = PLATFORM_ON_LEAVE_DO_NOTHING
 	get_node("/root/GameSettings").changed.connect(_apply_settings)
 	_apply_settings()
+	visual_camera.reset_interpolation()
 	set_mouse_captured(true)
 
 
@@ -45,6 +48,7 @@ func _apply_settings() -> void:
 	var settings := get_node("/root/GameSettings")
 	mouse_sensitivity = settings.mouse_sensitivity
 	camera.fov = settings.camera_fov
+	visual_camera.sync_projection()
 
 
 func set_mouse_captured(captured: bool) -> void:
@@ -75,9 +79,11 @@ func _unhandled_input(event: InputEvent) -> void:
 		rotate_y(-event.relative.x * mouse_sensitivity)
 		camera.rotation.x = clampf(camera.rotation.x - event.relative.y * mouse_sensitivity,
 			deg_to_rad(-85.0), deg_to_rad(85.0))
+		visual_camera.sync_rotation()
 
 
 func _physics_process(delta: float) -> void:
+	visual_camera.reset_if_eye_changed()
 	_update_stance(delta)
 	var movement := Vector2.ZERO
 	if mouse_captured:
@@ -100,6 +106,7 @@ func _physics_process(delta: float) -> void:
 	var before := global_position
 	move_and_slide()
 	_push_contacts(desired, global_position - before, delta)
+	visual_camera.capture_physics_eye()
 
 
 func _push_contacts(desired: Vector3, travel: Vector3, delta: float) -> void:
